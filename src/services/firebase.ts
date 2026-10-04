@@ -197,10 +197,28 @@ export function subscribeToBitacora(onUpdate: (entries: BitacoraEntry[]) => void
   );
 }
 
+export function cleanUndefined<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(cleanUndefined) as unknown as T;
+  }
+  const cleaned: any = {};
+  for (const key of Object.keys(obj)) {
+    const value = (obj as any)[key];
+    if (value !== undefined) {
+      cleaned[key] = cleanUndefined(value);
+    }
+  }
+  return cleaned as T;
+}
+
 // Mutations
 export async function saveProject(project: Project) {
   try {
-    await setDoc(doc(db, PROJECTS_COLLECTION, project.id), project, { merge: true });
+    const cleaned = cleanUndefined(project);
+    await setDoc(doc(db, PROJECTS_COLLECTION, project.id), cleaned, { merge: true });
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, `${PROJECTS_COLLECTION}/${project.id}`);
   }
@@ -216,7 +234,8 @@ export async function deleteProjectFromDb(id: string) {
 
 export async function saveEvent(event: LabEvent) {
   try {
-    await setDoc(doc(db, EVENTS_COLLECTION, event.id), event, { merge: true });
+    const cleaned = cleanUndefined(event);
+    await setDoc(doc(db, EVENTS_COLLECTION, event.id), cleaned, { merge: true });
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, `${EVENTS_COLLECTION}/${event.id}`);
   }
@@ -232,7 +251,8 @@ export async function deleteEventFromDb(id: string) {
 
 export async function saveCollaboration(collab: CollaborationRequest) {
   try {
-    await setDoc(doc(db, COLLABS_COLLECTION, collab.id), collab, { merge: true });
+    const cleaned = cleanUndefined(collab);
+    await setDoc(doc(db, COLLABS_COLLECTION, collab.id), cleaned, { merge: true });
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, `${COLLABS_COLLECTION}/${collab.id}`);
   }
@@ -240,7 +260,8 @@ export async function saveCollaboration(collab: CollaborationRequest) {
 
 export async function saveUser(user: UserProfile) {
   try {
-    await setDoc(doc(db, USERS_COLLECTION, user.id), user, { merge: true });
+    const cleaned = cleanUndefined(user);
+    await setDoc(doc(db, USERS_COLLECTION, user.id), cleaned, { merge: true });
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, `${USERS_COLLECTION}/${user.id}`);
   }
@@ -256,7 +277,8 @@ export async function deleteUserFromDb(id: string) {
 
 export async function saveBitacora(entry: BitacoraEntry) {
   try {
-    await setDoc(doc(db, BITACORA_COLLECTION, entry.id), entry, { merge: true });
+    const cleaned = cleanUndefined(entry);
+    await setDoc(doc(db, BITACORA_COLLECTION, entry.id), cleaned, { merge: true });
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, `${BITACORA_COLLECTION}/${entry.id}`);
   }
@@ -283,7 +305,8 @@ export function subscribeToCarouselSlides(callback: (slides: HeroCarouselSlide[]
 
 export async function saveCarouselSlide(slide: HeroCarouselSlide) {
   try {
-    await setDoc(doc(db, CAROUSEL_COLLECTION, slide.id), slide, { merge: true });
+    const cleaned = cleanUndefined(slide);
+    await setDoc(doc(db, CAROUSEL_COLLECTION, slide.id), cleaned, { merge: true });
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, `${CAROUSEL_COLLECTION}/${slide.id}`);
   }
