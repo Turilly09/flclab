@@ -490,7 +490,7 @@ export default function App() {
   });
 
   const [discordInviteUrl] = useState<string>(() => {
-    return localStorage.getItem('flc_discord_url') || 'https://discord.gg/9k5mXxvP';
+    return 'https://discord.gg/WK3aRSuBa';
   });
 
   useEffect(() => {
