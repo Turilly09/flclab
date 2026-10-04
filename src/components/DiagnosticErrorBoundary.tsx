@@ -57,24 +57,32 @@ export class DiagnosticErrorBoundary extends Component<Props, State> {
   }
 
   componentDidMount() {
-    // Only the root instance should register global listeners
-    if (!this.props.name || this.props.name === 'Root') {
+    // Register global listeners for top-level root instance
+    if (!this.props.name || this.props.name === 'Root' || this.props.name.includes('Principal')) {
       this.windowErrorListener = (event: ErrorEvent) => {
         console.error('[FLC_GLOBAL_WINDOW_ERROR]:', event.error || event.message);
-        if (event.error instanceof Error && !this.state.hasError) {
+        if (!this.state.hasError) {
+          const err =
+            event.error instanceof Error
+              ? event.error
+              : new Error(String(event.message || event.error || 'Error en script del navegador'));
           this.setState({
             hasError: true,
-            error: event.error,
+            error: err,
           });
         }
       };
 
       this.unhandledListener = (event: PromiseRejectionEvent) => {
         console.error('[FLC_UNHANDLED_PROMISE_REJECTION]:', event.reason);
-        if (event.reason instanceof Error && !this.state.hasError) {
+        if (!this.state.hasError) {
+          const err =
+            event.reason instanceof Error
+              ? event.reason
+              : new Error(String(event.reason || 'Promesa asíncrona rechazada'));
           this.setState({
             hasError: true,
-            error: event.reason,
+            error: err,
           });
         }
       };

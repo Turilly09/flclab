@@ -46,6 +46,8 @@ export const StudentRecruitSection: React.FC<StudentRecruitSectionProps> = ({
   // States for Instagram Caption Copy
   const [copiedCaption, setCopiedCaption] = useState(false);
 
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+
   const instagramCaptionText = `👾 ¿ABURRIDO DE SOLO JUGAR A VIDEOJUEGOS? VEN AL FLC LAB Y APRENDE A CREARLOS 👾
 
 ¿Tienes una idea en la cabeza? En el IES Fernando Lázaro Carreter lanzamos el FLC LAB, un espacio maker 100% libre para aprender haciendo.
@@ -64,14 +66,32 @@ export const StudentRecruitSection: React.FC<StudentRecruitSectionProps> = ({
 📅 GRAN CITA DE LANZAMIENTO PRESENCIAL:
 👉 Miércoles 7 de Octubre, en el Recreo, en el Salón de Actos del IES FLC.
 
-⚡ ¡Las plazas del Escuadrón Fundador están limitadas a solo 20 pioneros! Entra en el enlace de nuestra bio (${window.location.origin}) para darte de alta como alumno y recibir tu pase al Discord privado.
+⚡ ¡Las plazas del Escuadrón Fundador están limitadas a solo 20 pioneros! Entra en el enlace de nuestra bio (${currentOrigin}) para darte de alta como alumno y recibir tu pase al Discord privado.
 
 #FLCLab #Utrillas #IESFLC #MakerLab #GameDev #Arduino #Impresion3D #Teruel`;
 
   const handleCopyCaption = () => {
-    navigator.clipboard.writeText(instagramCaptionText);
-    setCopiedCaption(true);
-    setTimeout(() => setCopiedCaption(false), 2500);
+    try {
+      if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(instagramCaptionText);
+        setCopiedCaption(true);
+        setTimeout(() => setCopiedCaption(false), 2500);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = instagramCaptionText;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setCopiedCaption(true);
+        setTimeout(() => setCopiedCaption(false), 2500);
+      }
+    } catch (e) {
+      console.warn('Copy failed:', e);
+    }
   };
 
   return (

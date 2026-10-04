@@ -58,6 +58,7 @@ import { TeacherAdmissionModal } from './components/TeacherAdmissionModal';
 import { ExternalPartnersSection } from './components/ExternalPartnersSection';
 import { Footer } from './components/Footer';
 import { getCustomPdf, saveCustomPdf } from './utils/pdfStorage';
+import { safeStorage } from './utils/safeStorage';
 import {
   testFirestoreConnection,
   seedInitialFirestoreData,
@@ -154,10 +155,10 @@ export default function App() {
   const [users, setUsers] = useState<UserProfile[]>(() => {
     // Purge old mock data
     ['flc_lab_users', 'flc_lab_current_user_id', 'flc_lab_projects', 'flc_lab_events', 'flc_lab_collaborations', 'flc_lab_bitacora'].forEach(
-      (k) => localStorage.removeItem(k)
+      (k) => safeStorage.removeItem(k)
     );
 
-    const saved = localStorage.getItem('flc_v2_users');
+    const saved = safeStorage.getItem('flc_v2_users');
     if (saved) {
       try {
         const parsed: UserProfile[] = JSON.parse(saved);
@@ -165,19 +166,19 @@ export default function App() {
           return parsed;
         }
       } catch (e) {
-        console.error('Error parsing users from localStorage', e);
+        console.error('Error parsing users from storage', e);
       }
     }
     return DEFAULT_CREATOR_PROFILES;
   });
 
   useEffect(() => {
-    localStorage.setItem('flc_v2_users', JSON.stringify(users));
+    safeStorage.setItem('flc_v2_users', JSON.stringify(users));
   }, [users]);
 
   // Initial session starts CLOSED (Visitor mode by default)
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    const savedUserId = localStorage.getItem('flc_v2_current_user_id');
+    const savedUserId = safeStorage.getItem('flc_v2_current_user_id');
     if (savedUserId) {
       const found = users.find((u) => u.id === savedUserId);
       if (found) return found;
@@ -258,7 +259,7 @@ export default function App() {
 
   const handleLogin = (user: UserProfile) => {
     setCurrentUser(user);
-    localStorage.setItem('flc_v2_current_user_id', user.id);
+    safeStorage.setItem('flc_v2_current_user_id', user.id);
     showToast(`¡Sesión iniciada con éxito! Bienvenido, ${user.name}.`);
   };
 
@@ -266,20 +267,20 @@ export default function App() {
     setUsers((prev) => [...prev, newUser]);
     saveUserToDb(newUser);
     setCurrentUser(newUser);
-    localStorage.setItem('flc_v2_current_user_id', newUser.id);
+    safeStorage.setItem('flc_v2_current_user_id', newUser.id);
     showToast(`¡Cuenta creada con éxito! Bienvenido a FLC LAB, ${newUser.name}.`);
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
-    localStorage.removeItem('flc_v2_current_user_id');
+    safeStorage.removeItem('flc_v2_current_user_id');
     setIsManageMode(false);
     showToast('Has cerrado sesión. Modo visitante activo.');
   };
 
   const handleSwitchUser = (user: UserProfile) => {
     setCurrentUser(user);
-    localStorage.setItem('flc_v2_current_user_id', user.id);
+    safeStorage.setItem('flc_v2_current_user_id', user.id);
     if (!user.isAdmin) {
       setIsManageMode(false);
     }
@@ -288,7 +289,7 @@ export default function App() {
 
   // Local storage state initialization (Clean production storage)
   const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem('flc_v2_projects');
+    const saved = safeStorage.getItem('flc_v2_projects');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -297,80 +298,92 @@ export default function App() {
           return [PODCAST_PROJECT, ...otherProjects];
         }
       } catch (e) {
-        console.error('Error parsing projects from localStorage', e);
+        console.error('Error parsing projects from storage', e);
       }
     }
     return INITIAL_PROJECTS;
   });
 
   useEffect(() => {
-    localStorage.setItem('flc_v2_projects', JSON.stringify(projects));
+    safeStorage.setItem('flc_v2_projects', JSON.stringify(projects));
   }, [projects]);
 
   const [events, setEvents] = useState<LabEvent[]>(() => {
-    const saved = localStorage.getItem('flc_v2_events');
+    const saved = safeStorage.getItem('flc_v2_events');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
       } catch (e) {
-        console.error('Error parsing events from localStorage', e);
+        console.error('Error parsing events from storage', e);
       }
     }
     return INITIAL_EVENTS;
   });
 
   useEffect(() => {
-    localStorage.setItem('flc_v2_events', JSON.stringify(events));
+    safeStorage.setItem('flc_v2_events', JSON.stringify(events));
   }, [events]);
 
   const [collaborations, setCollaborations] = useState<CollaborationRequest[]>(() => {
-    const saved = localStorage.getItem('flc_v2_collaborations');
+    const saved = safeStorage.getItem('flc_v2_collaborations');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
       } catch (e) {
-        console.error('Error parsing collaborations from localStorage', e);
+        console.error('Error parsing collaborations from storage', e);
       }
     }
     return INITIAL_COLLABORATIONS;
   });
 
   useEffect(() => {
-    localStorage.setItem('flc_v2_collaborations', JSON.stringify(collaborations));
+    safeStorage.setItem('flc_v2_collaborations', JSON.stringify(collaborations));
   }, [collaborations]);
 
   // Bitacora entries state
   const [bitacoraEntries, setBitacoraEntries] = useState<BitacoraEntry[]>(() => {
-    const saved = localStorage.getItem('flc_v2_bitacora');
+    const saved = safeStorage.getItem('flc_v2_bitacora');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
       } catch (e) {
-        console.error('Error parsing bitacora from localStorage', e);
+        console.error('Error parsing bitacora from storage', e);
       }
     }
     return INITIAL_BITACORA_ENTRIES;
   });
 
   useEffect(() => {
-    localStorage.setItem('flc_v2_bitacora', JSON.stringify(bitacoraEntries));
+    safeStorage.setItem('flc_v2_bitacora', JSON.stringify(bitacoraEntries));
   }, [bitacoraEntries]);
 
   // Carousel slides state with local storage fallback
   const [carouselSlides, setCarouselSlides] = useState<HeroCarouselSlide[]>(() => {
-    const saved = localStorage.getItem('flc_v2_carousel_slides');
+    const saved = safeStorage.getItem('flc_v2_carousel_slides');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
       } catch (e) {
-        console.error('Error parsing carousel slides from localStorage', e);
+        console.error('Error parsing carousel slides from storage', e);
       }
     }
     return INITIAL_CAROUSEL_SLIDES;
   });
 
   useEffect(() => {
-    localStorage.setItem('flc_v2_carousel_slides', JSON.stringify(carouselSlides));
+    safeStorage.setItem('flc_v2_carousel_slides', JSON.stringify(carouselSlides));
   }, [carouselSlides]);
 
   const handleUpdateCarouselSlide = (updatedSlide: HeroCarouselSlide) => {
@@ -384,7 +397,7 @@ export default function App() {
   const handleResetCarouselSlides = () => {
     setCarouselSlides(INITIAL_CAROUSEL_SLIDES);
     INITIAL_CAROUSEL_SLIDES.forEach((s) => saveCarouselSlide(s));
-    localStorage.removeItem('flc_v2_carousel_slides');
+    safeStorage.removeItem('flc_v2_carousel_slides');
     showToast('Diapositivas restauradas a los valores originales.');
   };
 
@@ -538,7 +551,7 @@ export default function App() {
 
     // Login immediately
     setCurrentUser(newStudentUser);
-    localStorage.setItem('flc_v2_current_user_id', newStudentUser.id);
+    safeStorage.setItem('flc_v2_current_user_id', newStudentUser.id);
 
     showToast(`¡Alta completada con éxito! Pase de Fundador #${String(badgeNum).padStart(3, '0')} concedido.`);
     return newStudentUser;
@@ -558,7 +571,7 @@ export default function App() {
     deleteUserFromDb(userId);
     if (currentUser && currentUser.id === userId) {
       setCurrentUser(null);
-      localStorage.removeItem('flc_v2_current_user_id');
+      safeStorage.removeItem('flc_v2_current_user_id');
       showToast('Tu cuenta ha sido eliminada. Has cerrado sesión.');
     } else {
       showToast('Usuario eliminado correctamente de la pool.');
@@ -575,19 +588,19 @@ export default function App() {
 
   // Sync to local storage
   useEffect(() => {
-    localStorage.setItem('flc_lab_projects', JSON.stringify(projects));
+    safeStorage.setItem('flc_lab_projects', JSON.stringify(projects));
   }, [projects]);
 
   useEffect(() => {
-    localStorage.setItem('flc_lab_events', JSON.stringify(events));
+    safeStorage.setItem('flc_lab_events', JSON.stringify(events));
   }, [events]);
 
   useEffect(() => {
-    localStorage.setItem('flc_lab_collaborations', JSON.stringify(collaborations));
+    safeStorage.setItem('flc_lab_collaborations', JSON.stringify(collaborations));
   }, [collaborations]);
 
   useEffect(() => {
-    localStorage.setItem('flc_lab_users', JSON.stringify(users));
+    safeStorage.setItem('flc_lab_users', JSON.stringify(users));
   }, [users]);
 
   // Project count by phase for methodology section
@@ -759,9 +772,9 @@ export default function App() {
       setProjects(INITIAL_PROJECTS);
       setEvents(INITIAL_EVENTS);
       setCollaborations(INITIAL_COLLABORATIONS);
-      localStorage.removeItem('flc_lab_projects');
-      localStorage.removeItem('flc_lab_events');
-      localStorage.removeItem('flc_lab_collaborations');
+      safeStorage.removeItem('flc_lab_projects');
+      safeStorage.removeItem('flc_lab_events');
+      safeStorage.removeItem('flc_lab_collaborations');
       showToast('Datos del laboratorio restaurados al estado inicial.');
     }
   };
