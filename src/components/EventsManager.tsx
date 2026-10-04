@@ -33,7 +33,6 @@ interface EventsManagerProps {
   onUpdateEvent?: (updatedEvent: LabEvent) => void;
   onDeleteEvent?: (eventId: string) => void;
   onApproveEvent?: (eventId: string) => void;
-  onRequireConstructionNotice?: (actionTitle: string) => void;
   isManageMode: boolean;
   isAdmin?: boolean;
 }
@@ -46,7 +45,6 @@ export const EventsManager: React.FC<EventsManagerProps> = ({
   onUpdateEvent,
   onDeleteEvent,
   onApproveEvent,
-  onRequireConstructionNotice,
   isManageMode,
   isAdmin = false,
 }) => {
@@ -176,7 +174,7 @@ export const EventsManager: React.FC<EventsManagerProps> = ({
                 <Building2 className="w-4 h-4 text-slate-950" />
                 <span>+ Proponer Masterclass</span>
               </button>
-            ) : currentUser ? (
+            ) : (
               <button
                 onClick={onOpenNewEventModal}
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-amber-400/20 whitespace-nowrap cursor-pointer"
@@ -185,7 +183,7 @@ export const EventsManager: React.FC<EventsManagerProps> = ({
                 <Sparkles className="w-4 h-4 text-slate-950" />
                 <span>+ Proponer Sesión o Taller</span>
               </button>
-            ) : null}
+            )}
           </div>
         </div>
 
@@ -491,9 +489,6 @@ export const EventsManager: React.FC<EventsManagerProps> = ({
                       <button
                         onClick={() => {
                           onToggleRegister(evt.id);
-                          if (!evt.isRegistered && onRequireConstructionNotice) {
-                            onRequireConstructionNotice('inscribirse a las sesiones del taller');
-                          }
                         }}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                           evt.isRegistered

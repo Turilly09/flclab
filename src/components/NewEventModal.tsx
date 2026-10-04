@@ -19,6 +19,7 @@ interface NewEventModalProps {
   onClose: () => void;
   currentUser?: UserProfile | null;
   onCreateEvent: (event: LabEvent) => void;
+  onOpenAuthModal?: () => void;
 }
 
 export const NewEventModal: React.FC<NewEventModalProps> = ({
@@ -26,6 +27,7 @@ export const NewEventModal: React.FC<NewEventModalProps> = ({
   onClose,
   currentUser,
   onCreateEvent,
+  onOpenAuthModal,
 }) => {
   const isAdmin = currentUser?.isAdmin;
   const isStudent = currentUser?.group === 'alumnado';
@@ -61,25 +63,36 @@ export const NewEventModal: React.FC<NewEventModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Guest users are strictly prevented from proposing sessions or events
+  // Visitors are strictly prevented from proposing sessions or events
   if (!currentUser) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
-        <div className="relative w-full max-w-md bg-slate-900 border-2 border-amber-400/40 rounded-2xl shadow-2xl p-6 space-y-4 text-center">
+        <div className="relative w-full max-w-md bg-slate-900 border-2 border-amber-400 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-4 text-center">
           <div className="w-12 h-12 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center mx-auto text-amber-400">
             <AlertCircle className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-white">Identificación Requerida</h3>
+          <h3 className="text-xl font-black text-white">Identificación Requerida</h3>
           <p className="text-xs text-slate-300 leading-relaxed">
-            Los usuarios invitados no pueden programar ni proponer sesiones en el calendario de FLC LAB. Debes iniciar sesión o darte de alta en la plataforma.
+            Los visitantes no pueden programar ni proponer sesiones en el calendario de FLC LAB. Debes iniciar sesión con tu cuenta de alumno, docente, familia o entidad colaboradora.
           </p>
-          <div className="pt-2 flex items-center justify-center gap-3">
+          <div className="pt-3 flex items-center justify-center gap-3">
             <button
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
             >
-              Cerrar
+              Cancelar
             </button>
+            {onOpenAuthModal && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenAuthModal();
+                }}
+                className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs cursor-pointer shadow-lg shadow-amber-400/20"
+              >
+                Iniciar Sesión / Darse de Alta
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -110,13 +123,15 @@ export const NewEventModal: React.FC<NewEventModalProps> = ({
       time: time.trim() || '16:30 - 18:30',
       location: location.trim() || 'Aula de Innovación & Maker Lab',
       description: description.trim(),
-      speakerOrHost: speakerOrHost.trim() || defaultSpeaker || 'Comunidad FLC LAB',
+      speakerOrHost: speakerOrHost.trim() || defaultSpeaker || currentUser.name,
       attendeesCount: 1,
       maxCapacity: parseInt(maxCapacity, 10) || undefined,
       isRegistered: true,
       isProposal: !isAdmin,
-      proposedBy: currentUser ? currentUser.name : 'Visitante',
-      proposedGroup: currentUser?.group,
+      proposedBy: currentUser.name,
+      proponentEmail: currentUser.email,
+      proponentId: currentUser.id,
+      proposedGroup: currentUser.group,
       status: isAdmin ? 'oficial' : 'propuesta_pendiente',
     };
 
@@ -193,6 +208,31 @@ export const NewEventModal: React.FC<NewEventModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
+          {/* Active User Proponent Badge (Auto-linked) */}
+          <div className="p-3.5 rounded-xl bg-slate-800/90 border border-amber-400/40 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center text-xs">
+                {currentUser.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>{currentUser.name}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-700 text-amber-300 font-semibold uppercase">
+                    {currentUser.group}
+                  </span>
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {currentUser.email}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                ✓ Proponente Vinculado
+              </span>
+            </div>
+          </div>
+
           {/* Title */}
           <div>
             <label className="block font-bold text-slate-200 mb-1">

@@ -12,14 +12,18 @@ import {
   ProjectPhase,
   RoleId,
   UserProfile,
-  BitacoraEntry
+  BitacoraEntry,
+  HeroCarouselSlide,
+  FounderRecruit
 } from './types/flc';
 import {
   INITIAL_PROJECTS,
   INITIAL_EVENTS,
   INITIAL_COLLABORATIONS,
   DEFAULT_CREATOR_PROFILES,
-  INITIAL_BITACORA_ENTRIES
+  INITIAL_BITACORA_ENTRIES,
+  INITIAL_CAROUSEL_SLIDES,
+  DEFAULT_FOUNDER_RECRUITS
 } from './data/flcInitialData';
 
 import { Header } from './components/Header';
@@ -27,6 +31,9 @@ import { ManageDashboardBar } from './components/ManageDashboardBar';
 import { HeroSection } from './components/HeroSection';
 import { DisciplinesSection } from './components/DisciplinesSection';
 import { RolesSection } from './components/RolesSection';
+import { StudentRecruitSection } from './components/StudentRecruitSection';
+import { StudentRecruitModal } from './components/StudentRecruitModal';
+import { PrintPosterModal } from './components/PrintPosterModal';
 import { MethodologySection } from './components/MethodologySection';
 import { CommunitySection } from './components/CommunitySection';
 import { ProjectsManager } from './components/ProjectsManager';
@@ -43,7 +50,7 @@ import { AuthModal } from './components/AuthModal';
 import { PermissionsMatrixModal } from './components/PermissionsMatrixModal';
 import { TeacherPasswordModal } from './components/TeacherPasswordModal';
 import { TeacherAdmissionModal } from './components/TeacherAdmissionModal';
-import { UnderConstructionModal } from './components/UnderConstructionModal';
+import { ExternalPartnersSection } from './components/ExternalPartnersSection';
 import { Footer } from './components/Footer';
 import { getCustomPdf, saveCustomPdf } from './utils/pdfStorage';
 import {
@@ -61,6 +68,8 @@ import {
   saveCollaboration as saveCollabToDb,
   saveUser as saveUserToDb,
   saveBitacora as saveBitacoraToDb,
+  subscribeToCarouselSlides,
+  saveCarouselSlide,
 } from './services/firebase';
 
 export default function App() {
@@ -133,22 +142,6 @@ export default function App() {
     } catch (err) {
       console.error('Error saving PDF:', err);
     }
-  };
-
-  // Construction notice popup state
-  const [constructionNotice, setConstructionNotice] = useState<{
-    isOpen: boolean;
-    actionTitle: string;
-  }>({
-    isOpen: false,
-    actionTitle: '',
-  });
-
-  const triggerConstructionNotice = (actionTitle: string) => {
-    setConstructionNotice({
-      isOpen: true,
-      actionTitle,
-    });
   };
 
   // Creator Users & Authentication state (Only Administrator initially)
@@ -353,6 +346,38 @@ export default function App() {
     localStorage.setItem('flc_v2_bitacora', JSON.stringify(bitacoraEntries));
   }, [bitacoraEntries]);
 
+  // Carousel slides state with local storage fallback
+  const [carouselSlides, setCarouselSlides] = useState<HeroCarouselSlide[]>(() => {
+    const saved = localStorage.getItem('flc_v2_carousel_slides');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Error parsing carousel slides from localStorage', e);
+      }
+    }
+    return INITIAL_CAROUSEL_SLIDES;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('flc_v2_carousel_slides', JSON.stringify(carouselSlides));
+  }, [carouselSlides]);
+
+  const handleUpdateCarouselSlide = (updatedSlide: HeroCarouselSlide) => {
+    setCarouselSlides((prev) =>
+      prev.map((s) => (s.id === updatedSlide.id ? updatedSlide : s))
+    );
+    saveCarouselSlide(updatedSlide);
+    showToast(`Diapositiva "${updatedSlide.tag}" actualizada con éxito.`);
+  };
+
+  const handleResetCarouselSlides = () => {
+    setCarouselSlides(INITIAL_CAROUSEL_SLIDES);
+    INITIAL_CAROUSEL_SLIDES.forEach((s) => saveCarouselSlide(s));
+    localStorage.removeItem('flc_v2_carousel_slides');
+    showToast('Diapositivas restauradas a los valores originales.');
+  };
+
   // Firebase Firestore Real-Time Synchronization
   useEffect(() => {
     testFirestoreConnection();
@@ -379,6 +404,9 @@ export default function App() {
     const unsubBitacora = subscribeToBitacora((remote) => {
       if (remote.length > 0) setBitacoraEntries(remote);
     });
+    const unsubCarousel = subscribeToCarouselSlides((remote) => {
+      if (remote.length > 0) setCarouselSlides(remote);
+    });
 
     return () => {
       unsubProjects();
@@ -386,6 +414,7 @@ export default function App() {
       unsubCollabs();
       unsubUsers();
       unsubBitacora();
+      unsubCarousel();
     };
   }, []);
 
@@ -443,6 +472,45 @@ export default function App() {
   const [isCollabModalOpen, setIsCollabModalOpen] = useState(false);
   const [preselectedCollabRole, setPreselectedCollabRole] = useState<RoleId | null>(null);
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [isRecruitModalOpen, setIsRecruitModalOpen] = useState(false);
+  const [isPrintPosterModalOpen, setIsPrintPosterModalOpen] = useState(false);
+
+  // Founder recruits & Discord invite (Honest count starting at 0/20)
+  const [founderRecruits, setFounderRecruits] = useState<FounderRecruit[]>(() => {
+    const saved = localStorage.getItem('flc_v2_founder_recruits');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        console.error('Error parsing founder recruits', e);
+      }
+    }
+    return DEFAULT_FOUNDER_RECRUITS;
+  });
+
+  const [discordInviteUrl] = useState<string>(() => {
+    return localStorage.getItem('flc_discord_url') || 'https://discord.gg/9k5mXxvP';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('flc_v2_founder_recruits', JSON.stringify(founderRecruits));
+  }, [founderRecruits]);
+
+  const handleAddFounderRecruit = (
+    newRecruitData: Omit<FounderRecruit, 'id' | 'badgeNumber' | 'createdAt'>
+  ): FounderRecruit => {
+    const badgeNumber = founderRecruits.length + 1;
+    const newRecruit: FounderRecruit = {
+      ...newRecruitData,
+      id: `rec-${Date.now()}`,
+      badgeNumber,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setFounderRecruits((prev) => [newRecruit, ...prev]);
+    showToast(`¡Pase de Fundador #${String(badgeNumber).padStart(3, '0')} concedido a ${newRecruit.nickname}!`);
+    return newRecruit;
+  };
 
   // Notification toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -480,9 +548,15 @@ export default function App() {
 
   // Handlers
   const handleCreateProject = (newProj: Project) => {
-    setProjects([newProj, ...projects]);
-    saveProjectToDb(newProj);
-    showToast(`¡Proyecto "${newProj.title}" creado con éxito en el Lab!`);
+    const enrichedProject: Project = {
+      ...newProj,
+      leaderId: newProj.leaderId || currentUser?.id,
+      leaderName: newProj.leaderName || currentUser?.name || 'Creador FLC',
+      leaderEmail: newProj.leaderEmail || currentUser?.email,
+    };
+    setProjects([enrichedProject, ...projects]);
+    saveProjectToDb(enrichedProject);
+    showToast(`¡Proyecto "${enrichedProject.title}" registrado y vinculado a tu cuenta!`);
   };
 
   const handleUpdateProject = (updated: Project) => {
@@ -514,12 +588,19 @@ export default function App() {
   };
 
   const handleCreateEvent = (newEvent: LabEvent) => {
-    setEvents([newEvent, ...events]);
-    saveEventToDb(newEvent);
-    if (newEvent.isProposal) {
-      showToast(`¡Propuesta "${newEvent.title}" registrada en el calendario con éxito!`);
+    const enrichedEvent: LabEvent = {
+      ...newEvent,
+      proposedBy: newEvent.proposedBy || currentUser?.name || 'Comunidad FLC',
+      proponentEmail: newEvent.proponentEmail || currentUser?.email,
+      proponentId: newEvent.proponentId || currentUser?.id,
+      proposedGroup: newEvent.proposedGroup || currentUser?.group,
+    };
+    setEvents([enrichedEvent, ...events]);
+    saveEventToDb(enrichedEvent);
+    if (enrichedEvent.isProposal) {
+      showToast(`¡Propuesta "${enrichedEvent.title}" vinculada a ${currentUser?.name || 'tu cuenta'}!`);
     } else {
-      showToast(`¡Sesión oficial "${newEvent.title}" programada correctamente!`);
+      showToast(`¡Sesión oficial "${enrichedEvent.title}" programada correctamente!`);
     }
   };
 
@@ -538,38 +619,39 @@ export default function App() {
   };
 
   const handleToggleRegisterEvent = (eventId: string) => {
-    setEvents(
-      events.map((evt) => {
-        if (evt.id === eventId) {
-          const nextRegistered = !evt.isRegistered;
-          const currentRegisteredIds = evt.registeredUserIds || [];
-          let updatedRegisteredIds = [...currentRegisteredIds];
-          if (currentUser) {
+    requireAuthForAction('inscribirse a las sesiones del taller', () => {
+      if (!currentUser) return;
+      setEvents(
+        events.map((evt) => {
+          if (evt.id === eventId) {
+            const nextRegistered = !evt.isRegistered;
+            const currentRegisteredIds = evt.registeredUserIds || [];
+            let updatedRegisteredIds = [...currentRegisteredIds];
             if (nextRegistered && !updatedRegisteredIds.includes(currentUser.id)) {
               updatedRegisteredIds.push(currentUser.id);
             } else if (!nextRegistered) {
               updatedRegisteredIds = updatedRegisteredIds.filter((id) => id !== currentUser.id);
             }
+            showToast(
+              nextRegistered
+                ? `¡Inscripción confirmada para ${currentUser.name} en "${evt.title}"!`
+                : `Inscripción cancelada para "${evt.title}".`
+            );
+            const updatedEvt = {
+              ...evt,
+              isRegistered: nextRegistered,
+              registeredUserIds: updatedRegisteredIds,
+              attendeesCount: nextRegistered
+                ? evt.attendeesCount + 1
+                : Math.max(0, evt.attendeesCount - 1),
+            };
+            saveEventToDb(updatedEvt);
+            return updatedEvt;
           }
-          showToast(
-            nextRegistered
-              ? `¡Inscripción confirmada para "${evt.title}"! Ya puedes comentar.`
-              : `Inscripción cancelada para "${evt.title}".`
-          );
-          const updatedEvt = {
-            ...evt,
-            isRegistered: nextRegistered,
-            registeredUserIds: updatedRegisteredIds,
-            attendeesCount: nextRegistered
-              ? evt.attendeesCount + 1
-              : Math.max(0, evt.attendeesCount - 1),
-          };
-          saveEventToDb(updatedEvt);
-          return updatedEvt;
-        }
-        return evt;
-      })
-    );
+          return evt;
+        })
+      );
+    });
   };
 
   const handleSubmitCollaboration = (request: CollaborationRequest) => {
@@ -676,11 +758,9 @@ export default function App() {
           }
         }}
         onOpenNewProject={() => {
-          if (currentUser?.isAdmin) {
+          requireAuthForAction('dar de alta o proponer un proyecto', () => {
             setIsNewProjectModalOpen(true);
-          } else {
-            showToast('Solo los administradores pueden crear nuevos proyectos.');
-          }
+          });
         }}
         onOpenCollabProposal={() => {
           requireAuthForAction('proponer proyectos o iniciativas', () => {
@@ -764,13 +844,31 @@ export default function App() {
               onOpenQuiz={() => setIsQuizModalOpen(true)}
               onDownloadPdf={handleDownloadPdf}
               onProposeProject={() => {
-                if (currentUser?.isAdmin) {
+                requireAuthForAction('proponer un proyecto o iniciativa', () => {
                   setIsNewProjectModalOpen(true);
-                } else {
-                  setPreselectedCollabRole(null);
-                  setIsCollabModalOpen(true);
-                }
+                });
               }}
+              carouselSlides={carouselSlides}
+              onUpdateCarouselSlide={handleUpdateCarouselSlide}
+              onResetCarouselSlides={handleResetCarouselSlides}
+              onNavigateTab={(tab) => {
+                setActiveTab(tab);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              totalRecruitsCount={founderRecruits.length}
+              maxRecruits={20}
+              onOpenRecruitModal={() => setIsRecruitModalOpen(true)}
+              onOpenPrintPoster={() => setIsPrintPosterModalOpen(true)}
+            />
+
+            {/* Convocatoria Estudiantil: Escuadrón Fundador (20 Plazas & Discord) */}
+            <StudentRecruitSection
+              totalRecruitsCount={founderRecruits.length}
+              maxRecruits={20}
+              recruits={founderRecruits}
+              onOpenRecruitModal={() => setIsRecruitModalOpen(true)}
+              onOpenPrintPoster={() => setIsPrintPosterModalOpen(true)}
+              discordInviteUrl={discordInviteUrl}
             />
 
             {/* Los 8 Roles del Laboratorio */}
@@ -784,6 +882,19 @@ export default function App() {
                 onOpenQuiz={() => setIsQuizModalOpen(true)}
               />
             </div>
+
+            {/* Bloque Estratégico: Socios Externos (Empresas, Ayuntamiento, Familias) */}
+            <ExternalPartnersSection
+              currentUser={currentUser}
+              onOpenCollabProposal={() => {
+                requireAuthForAction('proponer un reto, alianza o iniciativa', () => {
+                  setPreselectedCollabRole(null);
+                  setIsCollabModalOpen(true);
+                });
+              }}
+              onDownloadPdf={handleDownloadPdf}
+              onOpenAuthModal={handleOpenAuthModal}
+            />
           </>
         )}
 
@@ -802,11 +913,9 @@ export default function App() {
               currentUser={currentUser}
               onOpenProjectDetail={(p) => setSelectedProject(p)}
               onOpenNewProjectModal={() => {
-                if (currentUser?.isAdmin) {
+                requireAuthForAction('dar de alta o proponer un proyecto', () => {
                   setIsNewProjectModalOpen(true);
-                } else {
-                  showToast('Solo los administradores pueden crear nuevos proyectos.');
-                }
+                });
               }}
               isManageMode={isManageMode && !!currentUser?.isAdmin}
               isAdmin={!!currentUser?.isAdmin}
@@ -834,14 +943,13 @@ export default function App() {
               currentUser={currentUser}
               onToggleRegister={handleToggleRegisterEvent}
               onOpenNewEventModal={() => {
-                requireAuthForAction('programar o proponer sesiones', () => {
+                requireAuthForAction('programar o proponer talleres y sesiones', () => {
                   setIsNewEventModalOpen(true);
                 });
               }}
               onUpdateEvent={handleUpdateEvent}
               onDeleteEvent={handleDeleteEvent}
               onApproveEvent={handleApproveEvent}
-              onRequireConstructionNotice={triggerConstructionNotice}
               isManageMode={isManageMode && !!currentUser?.isAdmin}
               isAdmin={!!currentUser?.isAdmin}
             />
@@ -879,6 +987,23 @@ export default function App() {
             />
           </div>
         )}
+
+        {/* Tab 5: Alianzas & Socios Externos (Empresas, Ayuntamiento, Familias) */}
+        {activeTab === 'alianzas' && (
+          <div className="pt-2">
+            <ExternalPartnersSection
+              currentUser={currentUser}
+              onOpenCollabProposal={() => {
+                requireAuthForAction('proponer un reto, alianza o iniciativa', () => {
+                  setPreselectedCollabRole(null);
+                  setIsCollabModalOpen(true);
+                });
+              }}
+              onDownloadPdf={handleDownloadPdf}
+              onOpenAuthModal={handleOpenAuthModal}
+            />
+          </div>
+        )}
       </main>
 
       {/* Footer */}
@@ -912,8 +1037,9 @@ export default function App() {
       <NewProjectModal
         isOpen={isNewProjectModalOpen}
         onClose={() => setIsNewProjectModalOpen(false)}
+        currentUser={currentUser}
+        onOpenAuthModal={() => handleOpenAuthModal('login')}
         onCreateProject={handleCreateProject}
-        onRequireConstructionNotice={triggerConstructionNotice}
       />
 
       <NewEventModal
@@ -921,6 +1047,7 @@ export default function App() {
         onClose={() => setIsNewEventModalOpen(false)}
         currentUser={currentUser}
         onCreateEvent={handleCreateEvent}
+        onOpenAuthModal={() => handleOpenAuthModal('login')}
       />
 
       <CollabModal
@@ -932,7 +1059,6 @@ export default function App() {
         currentUser={currentUser}
         onOpenAuthModal={() => handleOpenAuthModal('login')}
         onSubmitCollab={handleSubmitCollaboration}
-        onRequireConstructionNotice={triggerConstructionNotice}
         preselectedRoleId={preselectedCollabRole}
       />
 
@@ -1039,11 +1165,22 @@ export default function App() {
         onUpdateUserTeacherStatus={handleUpdateUserTeacherStatus}
       />
 
-      {/* Under Construction Notice Popup */}
-      <UnderConstructionModal
-        isOpen={constructionNotice.isOpen}
-        onClose={() => setConstructionNotice({ isOpen: false, actionTitle: '' })}
-        actionTitle={constructionNotice.actionTitle}
+      {/* Student Recruitment Modal (45-sec Founder Pass to Discord) */}
+      <StudentRecruitModal
+        isOpen={isRecruitModalOpen}
+        onClose={() => setIsRecruitModalOpen(false)}
+        onAddRecruit={handleAddFounderRecruit}
+        totalRecruitsCount={founderRecruits.length}
+        maxRecruits={20}
+        discordInviteUrl={discordInviteUrl}
+        onOpenPrintPoster={() => setIsPrintPosterModalOpen(true)}
+      />
+
+      {/* Printable Poster for High School Hallways with QR Code */}
+      <PrintPosterModal
+        isOpen={isPrintPosterModalOpen}
+        onClose={() => setIsPrintPosterModalOpen(false)}
+        discordInviteUrl={discordInviteUrl}
       />
     </div>
   );

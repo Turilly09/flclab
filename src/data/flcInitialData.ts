@@ -6,7 +6,9 @@ import {
   LabEvent,
   CollaborationRequest,
   UserProfile,
-  BitacoraEntry
+  BitacoraEntry,
+  HeroCarouselSlide,
+  FounderRecruit
 } from '../types/flc';
 
 import heroImg from '../assets/images/flc_hero_maker_lab_1790737987297.jpg';
@@ -411,4 +413,49 @@ export const DEFAULT_CREATOR_PROFILES: UserProfile[] = [
 ];
 
 export const INITIAL_BITACORA_ENTRIES: BitacoraEntry[] = [];
+
+export const INITIAL_CAROUSEL_SLIDES: HeroCarouselSlide[] = [
+  {
+    id: 'slide-metodologia',
+    tag: 'Metodología Maker',
+    title: '6 Fases: De la Idea a la Realidad',
+    description: 'Descubrir, Idear, Prototipar, Testear, Iterar y Presentar. Proyectos colaborativos con roles definidos y producto final tangible.',
+    subtext: 'Metodología ágil aplicada al aula: videojuegos, robótica y prototipado',
+    imageUrl: ASSET_IMAGES.hero,
+    linkTab: 'proyectos',
+    actionLabel: 'Ver las 6 Fases',
+  },
+  {
+    id: 'slide-mision',
+    tag: 'Misión & Filosofía',
+    title: 'No es una clase. Es un laboratorio.',
+    description: 'Un ecosistema inclusivo donde el error es aprendizaje, aunando ciencia, arte y tecnología para resolver retos comunitarios reales.',
+    subtext: 'Comunidad activa: alumnado, familias, docentes y empresas',
+    imageUrl: ASSET_IMAGES.game,
+    linkTab: 'inicio',
+    actionLabel: 'Ver Manifiesto',
+  },
+  {
+    id: 'slide-calendario',
+    tag: 'Próxima Sesión Maker',
+    title: 'Taller de Prototipado y Robótica',
+    description: 'Sesión de creación práctica en el Maker Lab: modelado 3D, circuitos con sensores y programación de mecánicas interactivas.',
+    subtext: 'Jueves 16:30 - 18:30 · Aula Maker FLC (1º ESO a FP)',
+    imageUrl: ASSET_IMAGES.robotics,
+    linkTab: 'calendario',
+    actionLabel: 'Ver Calendario',
+  },
+  {
+    id: 'slide-comunidad',
+    tag: 'Feria & Comunidad',
+    title: 'Mundos de Mañana: Muestra Pública',
+    description: 'Hito culminante donde los proyectos de videojuegos, juegos de mesa y robótica se presentan a las familias y al municipio.',
+    subtext: 'Feria final de 3T abierta a todo Utrillas',
+    imageUrl: ASSET_IMAGES.boardgame,
+    linkTab: 'colaboraciones',
+    actionLabel: 'Unirse al Lab',
+  },
+];
+
+export const DEFAULT_FOUNDER_RECRUITS: FounderRecruit[] = [];
 

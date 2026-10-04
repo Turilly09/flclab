@@ -7,7 +7,6 @@ interface CollabModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmitCollab: (request: CollaborationRequest) => void;
-  onRequireConstructionNotice: (actionTitle: string) => void;
   preselectedRoleId?: RoleId | null;
   currentUser?: UserProfile | null;
   onOpenAuthModal?: () => void;
@@ -17,7 +16,6 @@ export const CollabModal: React.FC<CollabModalProps> = ({
   isOpen,
   onClose,
   onSubmitCollab,
-  onRequireConstructionNotice,
   preselectedRoleId = null,
   currentUser = null,
   onOpenAuthModal,
@@ -107,10 +105,10 @@ export const CollabModal: React.FC<CollabModalProps> = ({
 
     const newCollab: CollaborationRequest = {
       id: `collab-${Date.now()}`,
-      name: name.trim(),
-      email: email.trim(),
-      group,
-      gradeOrEntity: gradeOrEntity.trim() || 'Comunidad FLC',
+      name: currentUser.name,
+      email: currentUser.email,
+      group: currentUser.group,
+      gradeOrEntity: gradeOrEntity.trim() || currentUser.gradeOrDept || currentUser.organization || 'Comunidad FLC',
       rolesInterest: selectedRoles,
       disciplinesInterest: selectedDisciplines,
       motivation: motivation.trim(),
@@ -121,7 +119,6 @@ export const CollabModal: React.FC<CollabModalProps> = ({
 
     onSubmitCollab(newCollab);
     onClose();
-    onRequireConstructionNotice('inscribirse y darse de alta en el laboratorio');
   };
 
   return (
@@ -153,69 +150,42 @@ export const CollabModal: React.FC<CollabModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-bold text-slate-200 mb-1">
-                Nombre y Apellidos / Entidad *
-              </label>
-              <input
-                type="text"
-                placeholder="Tu nombre completo"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setError('');
-                }}
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400"
-              />
+          {/* Active User Proponent Badge (Auto-linked) */}
+          <div className="p-3.5 rounded-xl bg-slate-800/90 border border-amber-400/40 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center text-xs">
+                {currentUser.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>{currentUser.name}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-700 text-amber-300 font-semibold uppercase">
+                    {currentUser.group}
+                  </span>
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {currentUser.email}
+                </p>
+              </div>
             </div>
-
-            <div>
-              <label className="block font-bold text-slate-200 mb-1">
-                Correo Electrónico *
-              </label>
-              <input
-                type="email"
-                placeholder="ejemplo@iesutrillas.es / correo@gmail.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError('');
-                }}
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400"
-              />
+            <div className="text-right">
+              <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                ✓ Colaborador Vinculado
+              </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-bold text-slate-200 mb-1">
-                Colectivo
-              </label>
-              <select
-                value={group}
-                onChange={(e) => setGroup(e.target.value as CollaboratorGroup)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400"
-              >
-                <option value="alumnado">Alumnado (1º ESO a FP)</option>
-                <option value="profesorado">Profesorado (cualquier departamento)</option>
-                <option value="familias">Familias / Tutores</option>
-                <option value="entidades_externas">Entidad externa / Empresa / Exalumno</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block font-bold text-slate-200 mb-1">
-                Curso / Departamento / Empresa
-              </label>
-              <input
-                type="text"
-                placeholder="Ej: 3º ESO B, Dpto. Lengua, Taller mecánico..."
-                value={gradeOrEntity}
-                onChange={(e) => setGradeOrEntity(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400"
-              />
-            </div>
+          <div>
+            <label className="block font-bold text-slate-200 mb-1">
+              Curso / Departamento / Entidad
+            </label>
+            <input
+              type="text"
+              placeholder="Ej: 3º ESO B, Dpto. Lengua, Taller mecánico..."
+              value={gradeOrEntity}
+              onChange={(e) => setGradeOrEntity(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400"
+            />
           </div>
 
           {/* Roles Selector */}

@@ -10,7 +10,7 @@ import {
   getDocFromServer,
   writeBatch
 } from 'firebase/firestore';
-import { Project, LabEvent, CollaborationRequest, UserProfile, BitacoraEntry } from '../types/flc';
+import { Project, LabEvent, CollaborationRequest, UserProfile, BitacoraEntry, HeroCarouselSlide } from '../types/flc';
 import firebaseConfigJson from '../../firebase-applet-config.json';
 
 const firebaseConfig = {
@@ -207,5 +207,42 @@ export async function saveBitacora(entry: BitacoraEntry) {
     await setDoc(doc(db, BITACORA_COLLECTION, entry.id), entry, { merge: true });
   } catch (err) {
     console.error('Error saving bitacora entry to Firestore:', err);
+  }
+}
+
+const CAROUSEL_COLLECTION = 'carousel_slides';
+
+export function subscribeToCarouselSlides(callback: (slides: HeroCarouselSlide[]) => void): () => void {
+  const q = collection(db, CAROUSEL_COLLECTION);
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      if (snapshot.empty) {
+        callback([]);
+        return;
+      }
+      const slides: HeroCarouselSlide[] = [];
+      snapshot.forEach((d) => slides.push(d.data() as HeroCarouselSlide));
+      callback(slides);
+    },
+    (err) => {
+      console.warn('Firestore carousel_slides subscribe error:', err);
+    }
+  );
+}
+
+export async function saveCarouselSlide(slide: HeroCarouselSlide) {
+  try {
+    await setDoc(doc(db, CAROUSEL_COLLECTION, slide.id), slide, { merge: true });
+  } catch (err) {
+    console.error('Error saving carousel slide to Firestore:', err);
+  }
+}
+
+export async function deleteCarouselSlide(id: string) {
+  try {
+    await deleteDoc(doc(db, CAROUSEL_COLLECTION, id));
+  } catch (err) {
+    console.error('Error deleting carousel slide from Firestore:', err);
   }
 }

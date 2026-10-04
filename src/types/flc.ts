@@ -105,6 +105,7 @@ export interface Project {
   bitacora?: BitacoraEntry[];
   leaderId?: string;
   leaderName?: string;
+  leaderEmail?: string;
   enrolledUserIds?: string[];
   comments?: ItemComment[];
 }
@@ -126,6 +127,8 @@ export interface LabEvent {
   isRegistered?: boolean;
   isProposal?: boolean;
   proposedBy?: string;
+  proponentEmail?: string;
+  proponentId?: string;
   proposedGroup?: CollaboratorGroup;
   status?: 'oficial' | 'propuesta_pendiente';
   registeredUserIds?: string[];
@@ -170,5 +173,27 @@ export interface CollaborationRequest {
   motivation: string;
   projectProposal?: string;
   status: 'pendiente' | 'aprobada' | 'incorporado';
+  createdAt: string;
+}
+
+export interface HeroCarouselSlide {
+  id: string;
+  tag: string;
+  title: string;
+  description: string;
+  subtext?: string;
+  imageUrl: string;
+  linkTab?: 'inicio' | 'proyectos' | 'calendario' | 'colaboraciones';
+  actionLabel?: string;
+}
+
+export interface FounderRecruit {
+  id: string;
+  name: string;
+  nickname: string;
+  grade: string;
+  interests: string[];
+  discordHandle?: string;
+  badgeNumber: number;
   createdAt: string;
 }

@@ -1,35 +1,81 @@
 import React, { useState } from 'react';
-import { Project, DisciplineId, ProjectPhase, RoleId } from '../types/flc';
+import { Project, DisciplineId, ProjectPhase, RoleId, UserProfile } from '../types/flc';
 import { DISCIPLINES, ROLES, ASSET_IMAGES } from '../data/flcInitialData';
-import { X, Plus, Sparkles, AlertCircle } from 'lucide-react';
+import { X, Plus, Sparkles, AlertCircle, ShieldCheck, UserCheck } from 'lucide-react';
 
 interface NewProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
+  currentUser?: UserProfile | null;
+  onOpenAuthModal?: () => void;
   onCreateProject: (project: Project) => void;
-  onRequireConstructionNotice: (actionTitle: string) => void;
 }
 
 export const NewProjectModal: React.FC<NewProjectModalProps> = ({
   isOpen,
   onClose,
+  currentUser,
+  onOpenAuthModal,
   onCreateProject,
-  onRequireConstructionNotice,
 }) => {
+  const defaultLeadGroup = currentUser?.group === 'profesorado'
+    ? 'Profesorado'
+    : currentUser?.group === 'familias'
+    ? 'Familia'
+    : currentUser?.group === 'entidades_externas'
+    ? 'Mentor Externo'
+    : 'Alumnado';
+
   const [title, setTitle] = useState('');
   const [discipline, setDiscipline] = useState<DisciplineId>('videojuegos');
   const [phase, setPhase] = useState<ProjectPhase>(1);
   const [trimester, setTrimester] = useState<1 | 2 | 3>(1);
   const [summary, setSummary] = useState('');
   const [objectivesInput, setObjectivesInput] = useState('');
-  const [leadName, setLeadName] = useState('');
-  const [leadGroup, setLeadGroup] = useState<'Alumnado' | 'Profesorado' | 'Familia' | 'Mentor Externo'>('Alumnado');
-  const [leadGradeOrDept, setLeadGradeOrDept] = useState('');
-  const [leadRole, setLeadRole] = useState<RoleId>('project_lead');
+  const [leadGradeOrDept, setLeadGradeOrDept] = useState(
+    currentUser?.gradeOrDept || currentUser?.organization || ''
+  );
+  const [leadRole, setLeadRole] = useState<RoleId>(currentUser?.primaryRole || 'project_lead');
   const [selectedOpenRoles, setSelectedOpenRoles] = useState<RoleId[]>(['arte', 'audio', 'tecnologia']);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
+
+  // Block visitors strictly from proposing projects
+  if (!currentUser) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+        <div className="relative w-full max-w-md bg-slate-900 border-2 border-amber-400 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-4 text-center">
+          <div className="w-12 h-12 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center mx-auto text-amber-400">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <h3 className="text-xl font-black text-white">Identificación Requerida</h3>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Los visitantes no pueden dar de alta proyectos en el laboratorio. Para proponer un proyecto o iniciativa debes iniciar sesión con tu cuenta de alumno, docente, familia o empresa colaboradora.
+          </p>
+          <div className="pt-3 flex items-center justify-center gap-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+            >
+              Cancelar
+            </button>
+            {onOpenAuthModal && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenAuthModal();
+                }}
+                className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs cursor-pointer shadow-lg shadow-amber-400/20"
+              >
+                Iniciar Sesión / Darse de Alta
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleRoleToggle = (roleId: RoleId) => {
     if (selectedOpenRoles.includes(roleId)) {
@@ -47,10 +93,6 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
     }
     if (!summary.trim()) {
       setError('Por favor redacta un breve resumen de la idea.');
-      return;
-    }
-    if (!leadName.trim()) {
-      setError('Por favor indica quién coordina o propone la idea.');
       return;
     }
 
@@ -73,11 +115,14 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
       trimester,
       summary: summary.trim(),
       objectives: objectivesList.length > 0 ? objectivesList : ['Definir el alcance y primeras pruebas técnicas'],
+      leaderId: currentUser.id,
+      leaderName: currentUser.name,
+      leaderEmail: currentUser.email,
       team: [
         {
-          name: leadName.trim(),
+          name: currentUser.name,
           role: leadRole,
-          group: leadGroup,
+          group: defaultLeadGroup,
           gradeOrDept: leadGradeOrDept.trim() || undefined,
         },
       ],
@@ -95,7 +140,6 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
 
     onCreateProject(newProject);
     onClose();
-    onRequireConstructionNotice('dar de alta y proponer proyectos');
   };
 
   return (
@@ -210,51 +254,40 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
             />
           </div>
 
-          {/* Team Lead Info */}
-          <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-            <span className="text-xs font-black uppercase tracking-wider text-amber-400 block">
-              Coordinador / Persona que Propone
-            </span>
+          {/* Active User Proponent Card (Auto-linked) */}
+          <div className="p-4 rounded-xl bg-slate-950/90 border border-amber-400/40 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <UserCheck className="w-4 h-4 text-emerald-400" />
+                Coordinador / Autor Vinculado Automáticamente
+              </span>
+              <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                ✓ Cuenta Activa
+              </span>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Nombre Completo *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Tu nombre y apellidos"
-                  value={leadName}
-                  onChange={(e) => setLeadName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-400"
-                />
+            <div className="flex items-center gap-3 p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+              <div className="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 font-black flex items-center justify-center text-sm">
+                {currentUser.name.charAt(0).toUpperCase()}
               </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Colectivo
-                </label>
-                <select
-                  value={leadGroup}
-                  onChange={(e) => setLeadGroup(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-400"
-                >
-                  <option value="Alumnado">Alumnado</option>
-                  <option value="Profesorado">Profesorado</option>
-                  <option value="Familia">Familia</option>
-                  <option value="Mentor Externo">Mentor Externo / Entidad</option>
-                </select>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-white truncate">
+                  {currentUser.name}
+                </p>
+                <p className="text-[11px] text-slate-400 truncate">
+                  {currentUser.email} · <span className="text-amber-300 font-semibold uppercase">{defaultLeadGroup}</span>
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Curso o Departamento
+                  Curso, Grupo o Departamento
                 </label>
                 <input
                   type="text"
-                  placeholder="Ej: 3º ESO A / Dpto. Tecnología / Padre"
+                  placeholder="Ej: 3º ESO A / Dpto. Tecnología / Familia"
                   value={leadGradeOrDept}
                   onChange={(e) => setLeadGradeOrDept(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-400"
@@ -263,7 +296,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Tu Rol Principal
+                  Tu Rol en el Proyecto
                 </label>
                 <select
                   value={leadRole}
