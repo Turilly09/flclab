@@ -32,9 +32,7 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
   const [editIsAdmin, setEditIsAdmin] = useState(false);
   const [editTeacherStatus, setEditTeacherStatus] = useState<'pendiente' | 'aprobado' | 'rechazado'>('aprobado');
 
-  if (!isOpen) return null;
-
-  // Filtered users list with extreme NoSQL defense
+  // Filtered users list with extreme NoSQL defense (declared before any early returns to respect React Rules of Hooks)
   const filteredUsers = useMemo(() => {
     const rawUsers = Array.isArray(users) ? users : [];
     return rawUsers.filter((u) => {
@@ -55,6 +53,8 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
       return matchesSearch && matchesGroup;
     });
   }, [users, searchQuery, selectedGroup]);
+
+  if (!isOpen) return null;
 
   const handleStartEdit = (user: UserProfile) => {
     if (!user) return;

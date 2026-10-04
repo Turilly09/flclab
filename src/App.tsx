@@ -35,6 +35,7 @@ import { StudentRecruitSection } from './components/StudentRecruitSection';
 import { StudentRecruitModal } from './components/StudentRecruitModal';
 import { PrintPosterModal } from './components/PrintPosterModal';
 import { AdminUserPoolModal } from './components/AdminUserPoolModal';
+import { DiagnosticErrorBoundary } from './components/DiagnosticErrorBoundary';
 import { MethodologySection } from './components/MethodologySection';
 import { CommunitySection } from './components/CommunitySection';
 import { ProjectsManager } from './components/ProjectsManager';
@@ -1229,15 +1230,19 @@ export default function App() {
         discordInviteUrl={discordInviteUrl}
       />
 
-      {/* Admin User Pool Management Modal */}
-      <AdminUserPoolModal
-        isOpen={isAdminUserPoolModalOpen}
-        onClose={() => setIsAdminUserPoolModalOpen(false)}
-        users={users}
-        onUpdateUser={handleUpdateUser}
-        onDeleteUser={handleDeleteUser}
-        currentUser={currentUser}
-      />
+      {/* Admin User Pool Management Modal with Diagnostic Error Boundary */}
+      {isAdminUserPoolModalOpen && (
+        <DiagnosticErrorBoundary name="Panel de Administrar Usuarios (AdminUserPoolModal)">
+          <AdminUserPoolModal
+            isOpen={isAdminUserPoolModalOpen}
+            onClose={() => setIsAdminUserPoolModalOpen(false)}
+            users={users}
+            onUpdateUser={handleUpdateUser}
+            onDeleteUser={handleDeleteUser}
+            currentUser={currentUser}
+          />
+        </DiagnosticErrorBoundary>
+      )}
     </div>
   );
 }
