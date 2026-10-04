@@ -1,30 +1,100 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // FLC Lab: educational maker lab platform
-    // Public read access for community participation
+    
+    // Global Safety Net: Default Deny
     match /{document=**} {
-      allow read: if true;
+      allow read, write: if false;
     }
 
-    match /projects/{projectId} {
-      allow read, write: if true;
+    // Helper functions for Attribute-Based Access Control (ABAC)
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    match /events/{eventId} {
-      allow read, write: if true;
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
 
-    match /collaborations/{collabId} {
-      allow read, write: if true;
+    // Read the user's admin field directly from their doc in Firestore (Master Source of Truth)
+    function isUserAdmin(uid) {
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(uid)) &&
+             get(/databases/$(database)/documents/users/$(uid)).data.isAdmin == true;
     }
 
+    // ID validation to guard against Denial of Wallet and Path Variable injections
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Users Collection ---
     match /users/{userId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      
+      allow create: if isSignedIn() && 
+                    isOwner(userId) && 
+                    isValidId(userId) && 
+                    // Prevent standard self-promotion on creation
+                    (request.resource.data.isAdmin == false || userId == 'admin-flc');
+                    
+      allow update: if isSignedIn() && (
+                      isUserAdmin(request.auth.uid) || 
+                      (isOwner(userId) && 
+                       // Regular users cannot modify their own admin privilege
+                       request.resource.data.isAdmin == resource.data.isAdmin)
+                    );
+                    
+      allow delete: if isSignedIn() && (isUserAdmin(request.auth.uid) || isOwner(userId));
     }
 
+    // --- Projects Collection ---
+    match /projects/{projectId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(projectId);
+      allow update, delete: if isSignedIn() && (
+        isUserAdmin(request.auth.uid) ||
+        resource.data.leaderId == request.auth.uid
+      );
+    }
+
+    // --- Events Collection ---
+    match /events/{eventId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(eventId);
+      allow update: if isSignedIn() && (
+        isUserAdmin(request.auth.uid) ||
+        // Allow students and families to toggle RSVP (modifying registeredUserIds)
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['registeredUserIds', 'attendeesCount'])
+      );
+      allow delete: if isSignedIn() && isUserAdmin(request.auth.uid);
+    }
+
+    // --- Collaborations Collection ---
+    match /collaborations/{collabId} {
+      // Only admins can view all collaboration requests, users can view their own
+      allow read: if isSignedIn() && (
+        isUserAdmin(request.auth.uid) || 
+        resource.data.email == request.auth.token.email
+      );
+      allow create: if isSignedIn() && isValidId(collabId);
+      allow update, delete: if isSignedIn() && isUserAdmin(request.auth.uid);
+    }
+
+    // --- Bitacora Collection ---
     match /bitacora/{entryId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(entryId);
+      allow update: if isSignedIn() && (
+        isUserAdmin(request.auth.uid) ||
+        resource.data.authorId == request.auth.uid ||
+        // Allow anyone to clap (increase applause count)
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['applauseCount', 'hasApplauded'])
+      );
+      allow delete: if isSignedIn() && (
+        isUserAdmin(request.auth.uid) ||
+        resource.data.authorId == request.auth.uid
+      );
     }
   }
 }
