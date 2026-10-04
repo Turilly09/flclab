@@ -36,25 +36,32 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
 
   // Filtered users list
   const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
-      const matchesSearch =
-        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.handle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchQuery.toLowerCase());
+    return (users || []).filter((u) => {
+      if (!u) return false;
+      const name = u.name || '';
+      const handle = u.handle || '';
+      const email = u.email || '';
+      const group = u.group || 'alumnado';
 
-      const matchesGroup = selectedGroup === 'todos' || u.group === selectedGroup;
+      const matchesSearch =
+        name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        handle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        email.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesGroup = selectedGroup === 'todos' || group === selectedGroup;
 
       return matchesSearch && matchesGroup;
     });
   }, [users, searchQuery, selectedGroup]);
 
   const handleStartEdit = (user: UserProfile) => {
+    if (!user) return;
     setEditingUser(user);
-    setEditName(user.name);
-    setEditHandle(user.handle);
-    setEditEmail(user.email);
-    setEditGroup(user.group);
-    setEditGrade(user.gradeOrDept);
+    setEditName(user.name || '');
+    setEditHandle(user.handle || '');
+    setEditEmail(user.email || '');
+    setEditGroup(user.group || 'alumnado');
+    setEditGrade(user.gradeOrDept || '');
     setEditIsAdmin(!!user.isAdmin);
     setEditTeacherStatus(user.teacherStatus || 'aprobado');
   };
@@ -80,18 +87,20 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
   };
 
   const handleDeleteConfirm = (userId: string, name: string) => {
+    if (!userId) return;
     if (userId === currentUser?.id) {
       alert('No puedes eliminar tu propia cuenta de administrador en sesión.');
       return;
     }
-    const confirm = window.confirm(`¿Estás completamente seguro de que deseas eliminar a ${name} de la pool de usuarios? Esta acción no se puede deshacer.`);
+    const confirm = window.confirm(`¿Estás completamente seguro de que deseas eliminar a ${name || 'este usuario'} de la pool de usuarios? Esta acción no se puede deshacer.`);
     if (confirm) {
       onDeleteUser(userId);
     }
   };
 
   const getGroupIcon = (group: CollaboratorGroup) => {
-    switch (group) {
+    const safeGroup = group || 'alumnado';
+    switch (safeGroup) {
       case 'alumnado':
         return <Users className="w-4 h-4 text-cyan-400" />;
       case 'profesorado':
@@ -100,11 +109,14 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
         return <Building className="w-4 h-4 text-amber-400" />;
       case 'entidades_externas':
         return <Building className="w-4 h-4 text-purple-400" />;
+      default:
+        return <User className="w-4 h-4 text-slate-400" />;
     }
   };
 
   const getGroupLabel = (group: CollaboratorGroup) => {
-    switch (group) {
+    const safeGroup = group || 'alumnado';
+    switch (safeGroup) {
       case 'alumnado':
         return 'Alumno / Creador';
       case 'profesorado':
@@ -113,6 +125,8 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
         return 'Familia / Tutor';
       case 'entidades_externas':
         return 'Colaborador Externo';
+      default:
+        return 'Usuario';
     }
   };
 
@@ -384,18 +398,18 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
                               className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-slate-950 uppercase shadow-sm"
                               style={{ backgroundColor: u.avatarColor || '#e2e8f0' }}
                             >
-                              {u.name.charAt(0)}
+                              {(u.name || 'U').charAt(0)}
                             </div>
                             <div>
                               <div className="font-bold text-white flex items-center gap-1">
-                                <span>{u.name}</span>
+                                <span>{u.name || 'Sin nombre'}</span>
                                 {isSelf && (
                                   <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/25 text-emerald-400 border border-emerald-500/30">
                                     Tú
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[10px] text-slate-400 font-mono">@{u.handle}</div>
+                              <div className="text-[10px] text-slate-400 font-mono">{u.handle || '@usuario'}</div>
                             </div>
                           </div>
                         </td>
@@ -416,11 +430,11 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
                         </td>
 
                         <td className="p-3.5">
-                          <span className="font-semibold text-slate-300">{u.gradeOrDept}</span>
+                          <span className="font-semibold text-slate-300">{u.gradeOrDept || '-'}</span>
                         </td>
 
                         <td className="p-3.5">
-                          <span className="text-slate-400 font-mono">{u.email}</span>
+                          <span className="text-slate-400 font-mono">{u.email || '-'}</span>
                         </td>
 
                         <td className="p-3.5">
