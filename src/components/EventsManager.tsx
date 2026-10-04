@@ -113,25 +113,25 @@ export const EventsManager: React.FC<EventsManagerProps> = ({
     <section id="calendario" className="py-14 sm:py-20 border-b border-slate-800/80 bg-[#080D18]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Header from slide 8 */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 uppercase tracking-widest mb-3">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 text-center md:text-left items-center md:items-start">
+          <div className="flex flex-col items-center md:items-start">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 uppercase tracking-widest mb-3 mx-auto md:mx-0">
               <CalendarIcon className="w-3.5 h-3.5" />
               Hoja de Ruta del Curso
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
               CALENDARIO DEL TALLER
             </h2>
-            <p className="mt-2 text-slate-300 text-base max-w-2xl">
+            <p className="mt-2 text-slate-300 text-base max-w-2xl mx-auto md:mx-0">
               12 hitos organizados en 3 trimestres: de la lluvia de ideas inicial hasta la gran
               demostración pública ante las familias y el pueblo de Utrillas.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 self-start md:self-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto self-center md:self-auto">
             <button
               onClick={handleExportCalendar}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold border border-slate-700 transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold border border-slate-700 transition-colors cursor-pointer"
               title="Descargar eventos en formato iCal (.ics)"
             >
               <Download className="w-4 h-4 text-amber-400" />

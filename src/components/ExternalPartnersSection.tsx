@@ -57,10 +57,10 @@ export const ExternalPartnersSection: React.FC<ExternalPartnersSectionProps> = (
         </div>
 
         {/* 3 Pillars Selection Strip */}
-        <div className="flex items-center justify-center gap-2 sm:gap-3 p-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl max-w-2xl mx-auto">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 p-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl max-w-2xl mx-auto w-full">
           <button
             onClick={() => setActivePartnerTab('empresas')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
+            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
               activePartnerTab === 'empresas'
                 ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-400/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -72,7 +72,7 @@ export const ExternalPartnersSection: React.FC<ExternalPartnersSectionProps> = (
 
           <button
             onClick={() => setActivePartnerTab('ayuntamiento')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
+            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
               activePartnerTab === 'ayuntamiento'
                 ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -84,7 +84,7 @@ export const ExternalPartnersSection: React.FC<ExternalPartnersSectionProps> = (
 
           <button
             onClick={() => setActivePartnerTab('familias')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
+            className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
               activePartnerTab === 'familias'
                 ? 'bg-purple-500 text-white shadow-md shadow-purple-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'

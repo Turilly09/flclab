@@ -171,8 +171,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
 
         {/* Bottom Content Card */}
         <div className="absolute bottom-4 left-4 right-4 z-20 space-y-3">
-          <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/90 rounded-xl p-4 sm:p-5 shadow-2xl transition-all">
-            <h3 className="text-lg sm:text-xl font-black text-white tracking-tight leading-snug mb-1.5 flex items-center gap-2">
+          <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/90 rounded-xl p-4 sm:p-5 shadow-2xl transition-all text-center sm:text-left flex flex-col items-center sm:items-start">
+            <h3 className="text-lg sm:text-xl font-black text-white tracking-tight leading-snug mb-1.5 flex items-center justify-center sm:justify-start gap-2">
               <span>{currentSlide.title}</span>
             </h3>
 
@@ -181,14 +181,14 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
             </p>
 
             {currentSlide.subtext && (
-              <div className="mt-2 text-[11px] text-amber-300/90 font-medium flex items-center gap-1.5">
+              <div className="mt-2 text-[11px] text-amber-300/90 font-medium flex items-center justify-center sm:justify-start gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                 <span>{currentSlide.subtext}</span>
               </div>
             )}
 
             {/* Slide Action Button & Indicators */}
-            <div className="mt-3.5 pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
+            <div className="mt-3.5 pt-3 border-t border-slate-800 flex items-center justify-between gap-3 w-full">
               {currentSlide.linkTab && currentSlide.actionLabel ? (
                 <button
                   onClick={() => onNavigateTab(currentSlide.linkTab!)}

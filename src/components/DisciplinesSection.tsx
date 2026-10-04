@@ -78,11 +78,11 @@ export const DisciplinesSection: React.FC<DisciplinesSectionProps> = ({
           className="rounded-2xl bg-slate-900/90 border-2 p-6 sm:p-8 transition-all duration-300"
           style={{ borderColor: `${activeDiscipline.color}60` }}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-8 space-y-4">
-              <div className="flex items-center gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-center lg:text-left">
+            <div className="lg:col-span-8 space-y-4 flex flex-col items-center lg:items-start">
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 text-center sm:text-left">
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center font-bold"
+                  className="w-10 h-10 rounded-lg flex items-center justify-center font-bold shrink-0"
                   style={{
                     backgroundColor: `${activeDiscipline.color}25`,
                     color: activeDiscipline.color,
@@ -98,12 +98,12 @@ export const DisciplinesSection: React.FC<DisciplinesSectionProps> = ({
                 </div>
               </div>
 
-              <p className="text-slate-200 text-sm sm:text-base leading-relaxed">
+              <p className="text-slate-200 text-sm sm:text-base leading-relaxed text-center sm:text-left">
                 {activeDiscipline.description}
               </p>
 
               {/* Ideas de proyectos y herramientas */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 w-full text-left">
                 <div className="bg-slate-950/60 rounded-xl p-4 border border-slate-800">
                   <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block mb-2">
                     Ejemplos de Creación
@@ -138,8 +138,8 @@ export const DisciplinesSection: React.FC<DisciplinesSectionProps> = ({
             </div>
 
             {/* Quick Action Button for this discipline */}
-            <div className="lg:col-span-4 flex flex-col justify-center items-center lg:items-end text-center lg:text-right space-y-4">
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 max-w-xs text-left">
+            <div className="lg:col-span-4 flex flex-col justify-center items-center lg:items-end text-center lg:text-right space-y-4 w-full">
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 max-w-xs mx-auto lg:mx-0 text-center sm:text-left w-full">
                 <p className="text-xs text-slate-400 mb-1">¿Tienes una idea en esta área?</p>
                 <p className="text-xs font-semibold text-slate-200">
                   Puedes presentar tu propuesta de proyecto o sumarte a un equipo existente en {activeDiscipline.name}.
@@ -148,7 +148,7 @@ export const DisciplinesSection: React.FC<DisciplinesSectionProps> = ({
 
               <button
                 onClick={() => onSelectDiscipline(activeDiscipline.id)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-slate-950 transition-transform active:scale-95 shadow-md"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-slate-950 transition-transform active:scale-95 shadow-md cursor-pointer"
                 style={{ backgroundColor: activeDiscipline.color }}
               >
                 <span>Ver Proyectos de {activeDiscipline.name}</span>

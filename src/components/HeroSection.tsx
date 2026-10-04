@@ -48,11 +48,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Comic-style Bold Presentation Typography */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-6 text-center lg:text-left flex flex-col items-center lg:items-start">
             {/* Live Founder Squad Banner */}
             {onOpenRecruitModal && (
-              <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 sm:px-4 sm:py-2 rounded-2xl bg-gradient-to-r from-amber-400/20 via-orange-500/15 to-purple-600/20 border border-amber-400/40 shadow-lg shadow-amber-400/10">
-                <div className="flex items-center gap-2.5">
+              <div className="w-full flex flex-wrap items-center justify-center lg:justify-between gap-3 p-2.5 sm:px-4 sm:py-2 rounded-2xl bg-gradient-to-r from-amber-400/20 via-orange-500/15 to-purple-600/20 border border-amber-400/40 shadow-lg shadow-amber-400/10 text-center sm:text-left">
+                <div className="flex items-center justify-center gap-2.5">
                   <Flame className="w-4 h-4 text-amber-400 animate-pulse shrink-0" />
                   <div className="text-xs text-white">
                     <span className="font-black text-amber-300 uppercase tracking-wider">Escuadrón Fundador:</span>{' '}
@@ -61,7 +61,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center gap-2">
                   <button
                     onClick={onOpenRecruitModal}
                     className="px-3 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition-transform active:scale-95 shadow-sm cursor-pointer"
@@ -83,7 +83,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             )}
 
             {/* Institution Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 mx-auto lg:mx-0">
               <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span className="font-semibold text-white">IES Fernando Lázaro Carreter</span>
               <span className="text-slate-500">·</span>
@@ -91,8 +91,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
 
             {/* Main Title & Slogans directly from slides 1 & 2 */}
-            <div className="space-y-3.5">
-              <div className="flex items-center gap-2">
+            <div className="space-y-3.5 w-full flex flex-col items-center lg:items-start">
+              <div className="flex items-center justify-center lg:justify-start gap-2">
                 <Crown className="w-7 h-7 text-amber-400 fill-amber-400" />
                 <span className="text-xs uppercase tracking-[0.25em] font-extrabold text-amber-400">
                   Laboratorio de Creación
@@ -100,7 +100,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
 
               {/* Bold Main Headline */}
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-[1.08]">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-[1.08]">
                 IDEAS DE HOY.{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 block sm:inline">
                   MUNDOS DE MAÑANA.
@@ -108,8 +108,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </h1>
 
               {/* Seamless, integrated presentation with "¿Qué queremos ser?" */}
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                <p className="text-xl sm:text-2xl font-bold text-amber-300/90 tracking-tight">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-1">
+                <p className="text-lg sm:text-2xl font-bold text-amber-300/90 tracking-tight">
                   No es una clase. Es un laboratorio.
                 </p>
 
@@ -142,15 +142,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
             </div>
 
-            <p className="text-base sm:text-lg text-slate-200 leading-relaxed max-w-2xl font-normal">
+            <p className="text-sm sm:text-lg text-slate-200 leading-relaxed max-w-2xl font-normal mx-auto lg:mx-0">
               Trae tu propia idea, encuentra compañeros de equipo, accede a impresoras 3D y ordenadores de desarrollo, y cuenta con profes, familias y empresas que te respaldan en cada paso. <strong className="text-amber-300 font-bold">Sin exámenes ni notas.</strong>
             </p>
 
-            {/* 4 Key Action Buttons strictly in the same line */}
-            <div className="grid grid-cols-4 gap-2 sm:gap-2.5 pt-2">
+            {/* 4 Key Action Buttons responsive: 2 columns on mobile, 4 on desktop */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 w-full max-w-md sm:max-w-none mx-auto lg:mx-0">
               <button
                 onClick={onExploreProjects}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-2 sm:px-3 py-2.5 sm:py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-amber-400/20 whitespace-nowrap cursor-pointer text-center"
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-amber-400/20 cursor-pointer text-center"
                 title="Ver catálogo de proyectos y prototipos"
               >
                 <ArrowRight className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
@@ -160,7 +160,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               {onProposeProject ? (
                 <button
                   onClick={onProposeProject}
-                  className="w-full inline-flex items-center justify-center gap-1.5 px-2 sm:px-3 py-2.5 sm:py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white font-bold text-xs sm:text-sm border border-amber-400/40 hover:border-amber-400 transition-transform active:scale-95 shadow-sm whitespace-nowrap cursor-pointer text-center"
+                  className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white font-bold text-xs sm:text-sm border border-amber-400/40 hover:border-amber-400 transition-transform active:scale-95 shadow-sm cursor-pointer text-center"
                   title="Dar de alta o proponer una iniciativa maker"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 hidden sm:inline" />
@@ -172,7 +172,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
               <button
                 onClick={onOpenQuiz}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-2 sm:px-3 py-2.5 sm:py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm border border-slate-700 hover:border-slate-500 transition-colors whitespace-nowrap cursor-pointer text-center shadow-sm"
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm border border-slate-700 hover:border-slate-500 transition-colors cursor-pointer text-center shadow-sm"
                 title="Descubrir tu rol ideal en el laboratorio con un test rápido"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 hidden sm:inline" />
@@ -181,7 +181,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
               <button
                 onClick={onExploreCalendar}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-2 sm:px-3 py-2.5 sm:py-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white font-bold text-xs sm:text-sm border border-slate-700 hover:border-slate-500 transition-colors whitespace-nowrap cursor-pointer text-center shadow-sm"
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white font-bold text-xs sm:text-sm border border-slate-700 hover:border-slate-500 transition-colors cursor-pointer text-center shadow-sm"
                 title="Consultar calendario de talleres y sesiones"
               >
                 <Compass className="w-3.5 h-3.5 text-amber-400 shrink-0 hidden sm:inline" />
@@ -190,7 +190,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
 
             {/* Micro Stats Bar */}
-            <div className="pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-slate-300">
+            <div className="pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-slate-300 w-full text-center sm:text-left">
               <div>
                 <div className="text-2xl font-black text-white tabular-nums">7</div>
                 <div className="text-xs text-slate-400">Disciplinas Creativas</div>
@@ -211,7 +211,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
 
           {/* Right Column: Dynamic Interactive Carousel */}
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-5 relative w-full max-w-lg mx-auto lg:max-w-none">
             <HeroCarousel
               slides={carouselSlides}
               onUpdateSlide={onUpdateCarouselSlide}

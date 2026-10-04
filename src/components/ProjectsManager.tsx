@@ -116,16 +116,16 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
     <section id="proyectos" className="py-14 sm:py-20 border-b border-slate-800/80 bg-[#0B0F19]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header zone */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 uppercase tracking-widest mb-3">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 text-center md:text-left items-center md:items-start">
+          <div className="flex flex-col items-center md:items-start">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 uppercase tracking-widest mb-3 mx-auto md:mx-0">
               <Layers className="w-3.5 h-3.5" />
               Gestión de Contenidos & Creaciones
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
               PROYECTOS DEL LABORATORIO
             </h2>
-            <p className="mt-2 text-slate-300 text-base max-w-2xl">
+            <p className="mt-2 text-slate-300 text-base max-w-2xl mx-auto md:mx-0">
               Explora, filtra y gestiona los proyectos en marcha. Consulta los avances, objetivos
               técnicos y vacantes abiertas para unirte como creador.
             </p>
@@ -134,7 +134,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
           {isAdmin ? (
             <button
               onClick={onOpenNewProjectModal}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-amber-400/20 whitespace-nowrap self-start md:self-auto cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-amber-400/20 whitespace-nowrap w-full sm:w-auto self-center md:self-auto cursor-pointer"
             >
               <PlusCircle className="w-4 h-4 text-slate-950" />
               <span>+ Nuevo Proyecto Oficial (Admin)</span>
@@ -142,7 +142,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
           ) : currentUser?.group === 'alumnado' ? (
             <button
               onClick={onOpenCollabProposal}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-amber-400/20 whitespace-nowrap self-start md:self-auto cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-amber-400/20 whitespace-nowrap w-full sm:w-auto self-center md:self-auto cursor-pointer"
               title="Proponer una iniciativa de proyecto del alumnado para el Lab"
             >
               <GraduationCap className="w-4 h-4 text-slate-950" />
@@ -151,7 +151,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
           ) : currentUser?.group === 'familias' ? (
             <button
               onClick={onOpenCollabProposal}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-purple-400 hover:bg-purple-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-purple-400/20 whitespace-nowrap self-start md:self-auto cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-purple-400 hover:bg-purple-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-purple-400/20 whitespace-nowrap w-full sm:w-auto self-center md:self-auto cursor-pointer"
               title="Proponer iniciativa o taller familiar"
             >
               <Home className="w-4 h-4 text-slate-950" />
@@ -160,7 +160,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
           ) : currentUser?.group === 'entidades_externas' ? (
             <button
               onClick={onOpenCollabProposal}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-pink-400 hover:bg-pink-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-pink-400/20 whitespace-nowrap self-start md:self-auto cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-pink-400 hover:bg-pink-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-pink-400/20 whitespace-nowrap w-full sm:w-auto self-center md:self-auto cursor-pointer"
               title="Proponer un reto tecnológico de empresa para el alumnado"
             >
               <Building2 className="w-4 h-4 text-slate-950" />
@@ -169,7 +169,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
           ) : currentUser ? (
             <button
               onClick={onOpenCollabProposal}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-amber-400/20 whitespace-nowrap self-start md:self-auto cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-tight transition-transform active:scale-95 shadow-md shadow-amber-400/20 whitespace-nowrap w-full sm:w-auto self-center md:self-auto cursor-pointer"
               title="Proponer una idea o nuevo reto mediante solicitud de colaboración"
             >
               <Sparkles className="w-4 h-4 text-slate-950" />
@@ -179,7 +179,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
         </div>
 
         {/* View Switcher: Proyectos vs Muro de Bitácoras */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 border-b border-slate-800 pb-3">
           <button
             onClick={() => setActiveView('projects')}
             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${

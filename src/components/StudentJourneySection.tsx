@@ -200,8 +200,8 @@ export const StudentJourneySection: React.FC<StudentJourneySectionProps> = ({
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left Content Column */}
-            <div className="lg:col-span-7 space-y-5">
-              <div className="flex items-center gap-2.5">
+            <div className="lg:col-span-7 space-y-5 text-center sm:text-left flex flex-col items-center sm:items-start">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                 <span
                   className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider"
                   style={{
@@ -223,7 +223,7 @@ export const StudentJourneySection: React.FC<StudentJourneySectionProps> = ({
               </p>
 
               {/* Bullet Features */}
-              <div className="space-y-2.5 pt-1">
+              <div className="space-y-2.5 pt-1 w-full text-left">
                 {current.features.map((feat, idx) => (
                   <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300">
                     <CheckCircle2
@@ -236,11 +236,11 @@ export const StudentJourneySection: React.FC<StudentJourneySectionProps> = ({
               </div>
 
               {/* CTA Action Button */}
-              <div className="pt-3">
+              <div className="pt-3 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={current.action}
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-black text-xs sm:text-sm transition-transform active:scale-95 shadow-lg cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-black text-xs sm:text-sm transition-transform active:scale-95 shadow-lg cursor-pointer"
                   style={{
                     backgroundColor: current.color,
                     color: '#0B0F19',
@@ -254,7 +254,7 @@ export const StudentJourneySection: React.FC<StudentJourneySectionProps> = ({
             </div>
 
             {/* Right Visual / Graphic Column */}
-            <div className="lg:col-span-5">
+            <div className="lg:col-span-5 w-full max-w-md mx-auto lg:max-w-none">
               <div className="p-6 rounded-2xl bg-slate-950/80 border border-slate-800/80 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
