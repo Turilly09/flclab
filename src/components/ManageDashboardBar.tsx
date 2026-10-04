@@ -1,6 +1,6 @@
 import React from 'react';
 import { Project, LabEvent, CollaborationRequest, UserProfile } from '../types/flc';
-import { SlidersHorizontal, PlusCircle, CalendarPlus, UserCheck, Download, RotateCcw, ShieldCheck, GraduationCap } from 'lucide-react';
+import { SlidersHorizontal, PlusCircle, CalendarPlus, UserCheck, Download, RotateCcw, ShieldCheck, GraduationCap, Users } from 'lucide-react';
 
 interface ManageDashboardBarProps {
   projects: Project[];
@@ -10,6 +10,7 @@ interface ManageDashboardBarProps {
   onOpenNewProject: () => void;
   onOpenNewEvent: () => void;
   onOpenTeacherAdmissionModal?: () => void;
+  onOpenUserPoolModal?: () => void;
   onResetData: () => void;
   onExportData: () => void;
 }
@@ -22,6 +23,7 @@ export const ManageDashboardBar: React.FC<ManageDashboardBarProps> = ({
   onOpenNewProject,
   onOpenNewEvent,
   onOpenTeacherAdmissionModal,
+  onOpenUserPoolModal,
   onResetData,
   onExportData,
 }) => {
@@ -65,6 +67,17 @@ export const ManageDashboardBar: React.FC<ManageDashboardBarProps> = ({
                   ? `Admitir Docentes (${pendingTeachers.length})`
                   : 'Admisión Docente'}
               </span>
+            </button>
+          )}
+
+          {onOpenUserPoolModal && (
+            <button
+              onClick={onOpenUserPoolModal}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-450 text-slate-950 font-bold shadow-md shadow-emerald-500/20 transition-transform active:scale-95 cursor-pointer"
+              title="Administrar pool de alumnos, profesores y familias"
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Administrar Usuarios ({users.length})</span>
             </button>
           )}
 

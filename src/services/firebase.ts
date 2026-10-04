@@ -202,6 +202,14 @@ export async function saveUser(user: UserProfile) {
   }
 }
 
+export async function deleteUserFromDb(id: string) {
+  try {
+    await deleteDoc(doc(db, USERS_COLLECTION, id));
+  } catch (err) {
+    console.error('Error deleting user from Firestore:', err);
+  }
+}
+
 export async function saveBitacora(entry: BitacoraEntry) {
   try {
     await setDoc(doc(db, BITACORA_COLLECTION, entry.id), entry, { merge: true });

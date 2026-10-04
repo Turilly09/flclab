@@ -34,6 +34,7 @@ import { RolesSection } from './components/RolesSection';
 import { StudentRecruitSection } from './components/StudentRecruitSection';
 import { StudentRecruitModal } from './components/StudentRecruitModal';
 import { PrintPosterModal } from './components/PrintPosterModal';
+import { AdminUserPoolModal } from './components/AdminUserPoolModal';
 import { MethodologySection } from './components/MethodologySection';
 import { CommunitySection } from './components/CommunitySection';
 import { ProjectsManager } from './components/ProjectsManager';
@@ -67,6 +68,7 @@ import {
   deleteEventFromDb,
   saveCollaboration as saveCollabToDb,
   saveUser as saveUserToDb,
+  deleteUserFromDb,
   saveBitacora as saveBitacoraToDb,
   subscribeToCarouselSlides,
   saveCarouselSlide,
@@ -474,42 +476,85 @@ export default function App() {
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [isRecruitModalOpen, setIsRecruitModalOpen] = useState(false);
   const [isPrintPosterModalOpen, setIsPrintPosterModalOpen] = useState(false);
+  const [isAdminUserPoolModalOpen, setIsAdminUserPoolModalOpen] = useState(false);
 
-  // Founder recruits & Discord invite (Honest count starting at 0/20)
-  const [founderRecruits, setFounderRecruits] = useState<FounderRecruit[]>(() => {
-    const saved = localStorage.getItem('flc_v2_founder_recruits');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      } catch (e) {
-        console.error('Error parsing founder recruits', e);
-      }
-    }
-    return DEFAULT_FOUNDER_RECRUITS;
-  });
+  // Derived Founder Recruits directly from User pool where group === 'alumnado' (starts honestly at 0/20)
+  const founderRecruits = useMemo(() => {
+    return users.filter((u) => u.group === 'alumnado');
+  }, [users]);
 
   const [discordInviteUrl] = useState<string>(() => {
     return 'https://discord.gg/WK3aRSuBa';
   });
 
-  useEffect(() => {
-    localStorage.setItem('flc_v2_founder_recruits', JSON.stringify(founderRecruits));
-  }, [founderRecruits]);
+  const handleRegisterStudent = (studentData: {
+    name: string;
+    handle: string;
+    email: string;
+    password: string;
+    gradeOrDept: string;
+    favoriteDisciplines: string[];
+    discordHandle?: string;
+  }): UserProfile | null => {
+    // Prevent duplicate emails
+    const exists = users.find((u) => u.email.toLowerCase() === studentData.email.toLowerCase());
+    if (exists) return null;
 
-  const handleAddFounderRecruit = (
-    newRecruitData: Omit<FounderRecruit, 'id' | 'badgeNumber' | 'createdAt'>
-  ): FounderRecruit => {
-    const badgeNumber = founderRecruits.length + 1;
-    const newRecruit: FounderRecruit = {
-      ...newRecruitData,
-      id: `rec-${Date.now()}`,
-      badgeNumber,
+    const studentCount = users.filter((u) => u.group === 'alumnado').length;
+    const badgeNum = studentCount + 1;
+
+    const newStudentUser: UserProfile = {
+      id: `usr-stud-${Date.now()}`,
+      name: studentData.name,
+      handle: studentData.handle,
+      email: studentData.email,
+      password: studentData.password,
+      group: 'alumnado',
+      gradeOrDept: studentData.gradeOrDept,
+      roleType: 'creador',
+      primaryRole: 'tecnologia',
+      secondaryRoles: [],
+      favoriteDisciplines: studentData.favoriteDisciplines as any[],
+      skillsAndTools: studentData.favoriteDisciplines.map((d) => `Interés en ${d}`),
+      bio: `Miembro del Escuadrón Fundador (Pase #${String(badgeNum).padStart(3, '0')}).`,
+      badgeTitles: ['🚀 Escuadrón Fundador', `Pase #${String(badgeNum).padStart(3, '0')}`],
+      projectIds: [],
+      registeredEventIds: [],
+      avatarColor: ['#06B6D4', '#EF4444', '#F59E0B', '#10B981', '#A855F7', '#EC4899'][badgeNum % 6],
       createdAt: new Date().toISOString().split('T')[0],
     };
-    setFounderRecruits((prev) => [newRecruit, ...prev]);
-    showToast(`¡Pase de Fundador #${String(badgeNumber).padStart(3, '0')} concedido a ${newRecruit.nickname}!`);
-    return newRecruit;
+
+    // Update global users pool
+    setUsers((prev) => [...prev, newStudentUser]);
+    saveUserToDb(newStudentUser);
+
+    // Login immediately
+    setCurrentUser(newStudentUser);
+    localStorage.setItem('flc_v2_current_user_id', newStudentUser.id);
+
+    showToast(`¡Alta completada con éxito! Pase de Fundador #${String(badgeNum).padStart(3, '0')} concedido.`);
+    return newStudentUser;
+  };
+
+  const handleUpdateUser = (updatedUser: UserProfile) => {
+    setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+    saveUserToDb(updatedUser);
+    if (currentUser && currentUser.id === updatedUser.id) {
+      setCurrentUser(updatedUser);
+    }
+    showToast(`Usuario "${updatedUser.name}" actualizado correctamente.`);
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    deleteUserFromDb(userId);
+    if (currentUser && currentUser.id === userId) {
+      setCurrentUser(null);
+      localStorage.removeItem('flc_v2_current_user_id');
+      showToast('Tu cuenta ha sido eliminada. Has cerrado sesión.');
+    } else {
+      showToast('Usuario eliminado correctamente de la pool.');
+    }
   };
 
   // Notification toast
@@ -814,6 +859,7 @@ export default function App() {
           collaborations={collaborations}
           users={users}
           onOpenTeacherAdmissionModal={() => setIsTeacherAdmissionModalOpen(true)}
+          onOpenUserPoolModal={() => setIsAdminUserPoolModalOpen(true)}
           onOpenNewProject={() => setIsNewProjectModalOpen(true)}
           onOpenNewEvent={() => setIsNewEventModalOpen(true)}
           onResetData={handleResetData}
@@ -1165,11 +1211,11 @@ export default function App() {
         onUpdateUserTeacherStatus={handleUpdateUserTeacherStatus}
       />
 
-      {/* Student Recruitment Modal (45-sec Founder Pass to Discord) */}
+      {/* Student Recruitment Modal (Registers student with email/password into user pool) */}
       <StudentRecruitModal
         isOpen={isRecruitModalOpen}
         onClose={() => setIsRecruitModalOpen(false)}
-        onAddRecruit={handleAddFounderRecruit}
+        onRegisterStudent={handleRegisterStudent}
         totalRecruitsCount={founderRecruits.length}
         maxRecruits={20}
         discordInviteUrl={discordInviteUrl}
@@ -1181,6 +1227,16 @@ export default function App() {
         isOpen={isPrintPosterModalOpen}
         onClose={() => setIsPrintPosterModalOpen(false)}
         discordInviteUrl={discordInviteUrl}
+      />
+
+      {/* Admin User Pool Management Modal */}
+      <AdminUserPoolModal
+        isOpen={isAdminUserPoolModalOpen}
+        onClose={() => setIsAdminUserPoolModalOpen(false)}
+        users={users}
+        onUpdateUser={handleUpdateUser}
+        onDeleteUser={handleDeleteUser}
+        currentUser={currentUser}
       />
     </div>
   );
