@@ -453,87 +453,22 @@ export default function App() {
     );
 
     const unsubProjects = subscribeToProjects((remote) => {
-      if (remote.length > 0) {
-        setProjects((prev) => {
-          const remoteIds = new Set(remote.map((p) => p.id));
-          const localOnly = prev.filter((p) => !remoteIds.has(p.id) && !deletedIdsRef.current.has(p.id));
-          if (localOnly.length > 0) {
-            console.log('Sincronizando proyectos locales con Firestore:', localOnly.map((p) => p.title));
-            localOnly.forEach((p) => saveProjectToDb(p));
-            return [...remote, ...localOnly];
-          }
-          return remote.filter((p) => !deletedIdsRef.current.has(p.id));
-        });
-      }
+      if (remote.length > 0) setProjects(remote);
     });
     const unsubEvents = subscribeToEvents((remote) => {
-      if (remote.length > 0) {
-        setEvents((prev) => {
-          const remoteIds = new Set(remote.map((e) => e.id));
-          const localOnly = prev.filter((e) => !remoteIds.has(e.id) && !deletedIdsRef.current.has(e.id));
-          if (localOnly.length > 0) {
-            console.log('Sincronizando eventos locales con Firestore:', localOnly.map((e) => e.title));
-            localOnly.forEach((e) => saveEventToDb(e));
-            return [...remote, ...localOnly];
-          }
-          return remote.filter((e) => !deletedIdsRef.current.has(e.id));
-        });
-      }
+      if (remote.length > 0) setEvents(remote);
     });
     const unsubCollabs = subscribeToCollaborations((remote) => {
-      if (remote.length > 0) {
-        setCollaborations((prev) => {
-          const remoteIds = new Set(remote.map((c) => c.id));
-          const localOnly = prev.filter((c) => !remoteIds.has(c.id) && !deletedIdsRef.current.has(c.id));
-          if (localOnly.length > 0) {
-            console.log('Sincronizando colaboraciones locales con Firestore:', localOnly.map((c) => c.name));
-            localOnly.forEach((c) => saveCollabToDb(c));
-            return [...remote, ...localOnly];
-          }
-          return remote.filter((c) => !deletedIdsRef.current.has(c.id));
-        });
-      }
+      if (remote.length > 0) setCollaborations(remote);
     });
     const unsubUsers = subscribeToUsers((remote) => {
-      if (remote.length > 0) {
-        setUsers((prev) => {
-          const remoteIds = new Set(remote.map((u) => u.id));
-          const localOnly = prev.filter((u) => !remoteIds.has(u.id) && !deletedIdsRef.current.has(u.id));
-          if (localOnly.length > 0) {
-            console.log('Sincronizando usuarios locales con Firestore:', localOnly.map((u) => u.name));
-            localOnly.forEach((u) => saveUserToDb(u));
-            return [...remote, ...localOnly];
-          }
-          return remote.filter((u) => !deletedIdsRef.current.has(u.id));
-        });
-      }
+      if (remote.length > 0) setUsers(remote);
     });
     const unsubBitacora = subscribeToBitacora((remote) => {
-      if (remote.length > 0) {
-        setBitacoraEntries((prev) => {
-          const remoteIds = new Set(remote.map((b) => b.id));
-          const localOnly = prev.filter((b) => !remoteIds.has(b.id) && !deletedIdsRef.current.has(b.id));
-          if (localOnly.length > 0) {
-            console.log('Sincronizando bitácoras locales con Firestore:', localOnly.map((b) => b.title));
-            localOnly.forEach((b) => saveBitacoraToDb(b));
-            return [...remote, ...localOnly];
-          }
-          return remote.filter((b) => !deletedIdsRef.current.has(b.id));
-        });
-      }
+      if (remote.length > 0) setBitacoraEntries(remote);
     });
     const unsubCarousel = subscribeToCarouselSlides((remote) => {
-      if (remote.length > 0) {
-        setCarouselSlides((prev) => {
-          const remoteIds = new Set(remote.map((s) => s.id));
-          const localOnly = prev.filter((s) => !remoteIds.has(s.id) && !deletedIdsRef.current.has(s.id));
-          if (localOnly.length > 0) {
-            localOnly.forEach((s) => saveCarouselSlide(s));
-            return [...remote, ...localOnly];
-          }
-          return remote.filter((s) => !deletedIdsRef.current.has(s.id));
-        });
-      }
+      if (remote.length > 0) setCarouselSlides(remote);
     });
 
     return () => {
