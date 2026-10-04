@@ -18,6 +18,7 @@ import {
 } from './types/flc';
 import {
   INITIAL_PROJECTS,
+  PODCAST_PROJECT,
   INITIAL_EVENTS,
   INITIAL_COLLABORATIONS,
   DEFAULT_CREATOR_PROFILES,
@@ -29,6 +30,8 @@ import {
 import { Header } from './components/Header';
 import { ManageDashboardBar } from './components/ManageDashboardBar';
 import { HeroSection } from './components/HeroSection';
+import { StudentJourneySection } from './components/StudentJourneySection';
+import { PodcastSection } from './components/PodcastSection';
 import { DisciplinesSection } from './components/DisciplinesSection';
 import { RolesSection } from './components/RolesSection';
 import { StudentRecruitSection } from './components/StudentRecruitSection';
@@ -288,7 +291,11 @@ export default function App() {
     const saved = localStorage.getItem('flc_v2_projects');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const otherProjects = parsed.filter((p: any) => p?.id !== PODCAST_PROJECT.id);
+          return [PODCAST_PROJECT, ...otherProjects];
+        }
       } catch (e) {
         console.error('Error parsing projects from localStorage', e);
       }
@@ -908,6 +915,44 @@ export default function App() {
               onOpenPrintPoster={() => setIsPrintPosterModalOpen(true)}
             />
 
+            {/* CÓMO FUNCIONA FLC LAB: DE TU IDEA A LA REALIDAD EN 4 PASOS */}
+            <StudentJourneySection
+              onOpenQuiz={() => setIsQuizModalOpen(true)}
+              onExploreProjects={() => {
+                setActiveTab('proyectos');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onProposeProject={() => {
+                requireAuthForAction('proponer un proyecto o iniciativa', () => {
+                  setIsNewProjectModalOpen(true);
+                });
+              }}
+              onExploreCalendar={() => {
+                setActiveTab('calendario');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onScrollToPartners={() => {
+                const el = document.getElementById('partners-anchor');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+            />
+
+            {/* FLC ONDAS: EL PODCAST OFICIAL DEL LABORATORIO */}
+            <div id="podcast-anchor">
+              <PodcastSection
+                onOpenProjectDetail={(projectId) => {
+                  const proj = projects.find((p) => p.id === projectId) || PODCAST_PROJECT;
+                  setSelectedProject(proj);
+                }}
+                onJoinRole={(roleId) => {
+                  handleSelectRoleFilter(roleId);
+                  setActiveTab('proyectos');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onOpenRecruitModal={() => setIsRecruitModalOpen(true)}
+              />
+            </div>
+
             {/* Convocatoria Estudiantil: Escuadrón Fundador (20 Plazas & Discord) */}
             <StudentRecruitSection
               totalRecruitsCount={founderRecruits.length}
@@ -931,17 +976,19 @@ export default function App() {
             </div>
 
             {/* Bloque Estratégico: Socios Externos (Empresas, Ayuntamiento, Familias) */}
-            <ExternalPartnersSection
-              currentUser={currentUser}
-              onOpenCollabProposal={() => {
-                requireAuthForAction('proponer un reto, alianza o iniciativa', () => {
-                  setPreselectedCollabRole(null);
-                  setIsCollabModalOpen(true);
-                });
-              }}
-              onDownloadPdf={handleDownloadPdf}
-              onOpenAuthModal={handleOpenAuthModal}
-            />
+            <div id="partners-anchor">
+              <ExternalPartnersSection
+                currentUser={currentUser}
+                onOpenCollabProposal={() => {
+                  requireAuthForAction('proponer un reto, alianza o iniciativa', () => {
+                    setPreselectedCollabRole(null);
+                    setIsCollabModalOpen(true);
+                  });
+                }}
+                onDownloadPdf={handleDownloadPdf}
+                onOpenAuthModal={handleOpenAuthModal}
+              />
+            </div>
           </>
         )}
 

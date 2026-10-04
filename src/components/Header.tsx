@@ -15,7 +15,8 @@ import {
   HeartHandshake,
   CheckCircle2,
   Users,
-  Building2
+  Building2,
+  Radio
 } from 'lucide-react';
 import { UserProfile } from '../types/flc';
 
@@ -79,17 +80,17 @@ export const Header: React.FC<HeaderProps> = ({
   const getTabLabel = (tab: string) => {
     switch (tab) {
       case 'inicio':
-        return 'Manifiesto & Roles';
+        return 'Laboratorio';
       case 'proyectos':
-        return 'Proyectos & Fases';
+        return 'Proyectos';
       case 'calendario':
-        return 'Calendario & Hitos';
+        return 'Calendario';
       case 'colaboraciones':
         return 'Comunidad';
       case 'alianzas':
-        return 'Empresas & Ayuntamiento';
+        return 'Alianzas & Empresas';
       default:
-        return 'Manifiesto & Roles';
+        return 'Laboratorio';
     }
   };
 
@@ -194,12 +195,36 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Dropdown Floating Panel */}
             {isNavOpen && (
               <div className="absolute left-0 mt-2 w-72 sm:w-80 rounded-2xl bg-slate-900/98 border border-slate-700 backdrop-blur-xl shadow-2xl shadow-black/80 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-1">
+                {/* Podcast Highlight in Menu */}
+                <button
+                  onClick={() => {
+                    setActiveTab('inicio');
+                    setIsNavOpen(false);
+                    setTimeout(() => {
+                      const el = document.getElementById('podcast-anchor');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }, 50);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Radio className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+                    <div className="text-left">
+                      <div className="leading-tight font-black">FLC ONDAS (Podcast)</div>
+                      <div className="text-[10px] text-amber-300/80">Escuchar emisiones del lab</div>
+                    </div>
+                  </div>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-black uppercase">
+                    Radio
+                  </span>
+                </button>
+
                 {/* Section Header */}
-                <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 pt-1">
                   Secciones del Laboratorio
                 </div>
 
-                {/* 1. Manifiesto & Roles */}
+                {/* 1. Laboratorio */}
                 <button
                   onClick={() => {
                     setActiveTab('inicio');
@@ -215,9 +240,9 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="flex items-center gap-2.5">
                     <Compass className="w-4 h-4 shrink-0" />
                     <div className="text-left">
-                      <div className="leading-tight">Manifiesto & Roles</div>
+                      <div className="leading-tight">Laboratorio</div>
                       <div className={`text-[10px] ${activeTab === 'inicio' ? 'text-slate-900 font-medium' : 'text-slate-400'}`}>
-                        Filosofía y los 8 roles maker
+                        Cómo funciona, roles y plazas
                       </div>
                     </div>
                   </div>
@@ -417,6 +442,23 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {/* Quick FLC ONDAS direct shortcut button */}
+          <button
+            onClick={() => {
+              setActiveTab('inicio');
+              setTimeout(() => {
+                const el = document.getElementById('podcast-anchor');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }, 50);
+            }}
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/30 transition-all cursor-pointer shadow-sm"
+            title="Escuchar FLC ONDAS, el podcast oficial del laboratorio"
+          >
+            <Radio className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            <span>FLC ONDAS</span>
+            <span className="flex h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
+          </button>
         </div>
 
         {/* Right Side: Strictly Fixed Authentication Actions */}

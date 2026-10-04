@@ -259,7 +259,55 @@ export const PHASES: PhaseInfo[] = [
   },
 ];
 
-export const INITIAL_PROJECTS: Project[] = [];
+export const PODCAST_PROJECT: Project = {
+  id: 'proj_podcast_flc_ondas',
+  title: 'FLC ONDAS: El Podcast del Laboratorio',
+  discipline: 'musica_sonido',
+  phase: 1,
+  trimester: 1,
+  summary:
+    'El canal sonoro oficial del IES Fernando Lázaro Carreter. Un proyecto en fase de arranque donde los propios alumnos prepararán y grabarán entrevistas y novedades sobre lo que se cuece en el laboratorio.',
+  objectives: [
+    'Grabar y publicar el Episodio 1 explicando qué es el FLC LAB a las familias y al pueblo.',
+    'Formar un equipo de alumnos en técnicas de locución, redacción de guiones y sonido con software libre.',
+    'Documentar de forma regular los avances de los talleres de videojuegos, 3D, robótica y juegos de mesa.',
+  ],
+  team: [],
+  openRoles: ['comunicacion', 'audio', 'produccion'],
+  thumbnail: '/src/assets/images/flc_hero_maker_lab_1790737987297.jpg',
+  deliverablesCompleted: [
+    'Definición de FLC ONDAS como proyecto oficial de comunicación del centro',
+    'Escaleta del Episodio 1: "¿Qué es el FLC LAB? Presentación del Laboratorio"',
+  ],
+  deliverablesPending: [
+    'Incorporación de alumnos interesados (locución, sonido y guion)',
+    'Organización del set de microfonía en el centro',
+    'Grabación del Episodio 1',
+    'Edición con software libre y publicación',
+  ],
+  nextMilestone: 'Conformar el equipo de alumnos y grabar el Episodio 1',
+  lastUpdate: 'Hoy',
+  bitacora: [
+    {
+      id: 'bit-pod-01',
+      projectId: 'proj_podcast_flc_ondas',
+      date: 'Octubre 2026',
+      authorName: 'Equipo Promotor',
+      authorHandle: '@flc_lab',
+      authorRole: 'comunicacion',
+      authorAvatarColor: '#F59E0B',
+      title: 'Puesta en marcha de FLC ONDAS y preparación del Episodio 1',
+      content:
+        'Lanzamos la iniciativa del podcast oficial para transmitir qué se cuece en el laboratorio. El primer episodio se centrará en explicar qué es el FLC LAB, por qué no es una clase tradicional y cómo apuntarse a las 20 plazas del Escuadrón Fundador. Buscamos a los primeros alumnos para ponerse frente a los micrófonos y coordinar la parte técnica.',
+      learning: 'La mejor forma de explicar un proyecto educativo a las familias y al entorno es a través de la voz real de los propios alumnos.',
+      phase: 1,
+      tags: ['arranque', 'comunicacion', 'episodio1', 'convocatoria'],
+      applauseCount: 12,
+    },
+  ],
+};
+
+export const INITIAL_PROJECTS: Project[] = [PODCAST_PROJECT];
 
 export const INITIAL_EVENTS: LabEvent[] = [];
 

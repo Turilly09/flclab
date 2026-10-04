@@ -1,5 +1,5 @@
 import React from 'react';
-import { Crown, Sparkles, ArrowRight, Compass, Download, Flame, Printer } from 'lucide-react';
+import { Crown, Sparkles, ArrowRight, Compass, Download, Flame, Printer, Radio } from 'lucide-react';
 import { UserProfile, HeroCarouselSlide } from '../types/flc';
 import { HeroCarousel } from './HeroCarousel';
 
@@ -124,13 +124,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     Dossier PDF
                   </span>
                 </button>
+
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('podcast-anchor');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-amber-300 hover:text-white border border-amber-400/40 hover:border-amber-400 transition-all text-xs font-semibold cursor-pointer group shadow-sm shadow-amber-400/10"
+                  title="Escuchar FLC ONDAS, el podcast oficial del laboratorio"
+                >
+                  <Radio className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                  <span className="font-bold">FLC ONDAS</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-bold uppercase">
+                    Radio Lab
+                  </span>
+                </button>
               </div>
             </div>
 
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl font-normal">
-              Un espacio creativo multidisciplinar donde estudiantes, profesores, familias y entidades
-              diseñan, programan, ilustran y fabrican proyectos reales: videojuegos, robots, cortometrajes y
-              juegos de mesa desde la idea inicial hasta la feria final.
+            <p className="text-base sm:text-lg text-slate-200 leading-relaxed max-w-2xl font-normal">
+              Trae tu propia idea, encuentra compañeros de equipo, accede a impresoras 3D y ordenadores de desarrollo, y cuenta con profes, familias y empresas que te respaldan en cada paso. <strong className="text-amber-300 font-bold">Sin exámenes ni notas.</strong>
             </p>
 
             {/* 4 Key Action Buttons strictly in the same line */}
