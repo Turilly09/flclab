@@ -46,6 +46,22 @@ import { TeacherAdmissionModal } from './components/TeacherAdmissionModal';
 import { UnderConstructionModal } from './components/UnderConstructionModal';
 import { Footer } from './components/Footer';
 import { getCustomPdf, saveCustomPdf } from './utils/pdfStorage';
+import {
+  testFirestoreConnection,
+  seedInitialFirestoreData,
+  subscribeToProjects,
+  subscribeToEvents,
+  subscribeToCollaborations,
+  subscribeToUsers,
+  subscribeToBitacora,
+  saveProject as saveProjectToDb,
+  deleteProjectFromDb,
+  saveEvent as saveEventToDb,
+  deleteEventFromDb,
+  saveCollaboration as saveCollabToDb,
+  saveUser as saveUserToDb,
+  saveBitacora as saveBitacoraToDb,
+} from './services/firebase';
 
 export default function App() {
   const [customPdfBlob, setCustomPdfBlob] = useState<Blob | null>(null);
@@ -183,7 +199,7 @@ export default function App() {
     setUsers((prev) =>
       prev.map((u) => {
         if (u.id === userId) {
-          return {
+          const updated: UserProfile = {
             ...u,
             teacherStatus: newStatus,
             badgeTitles:
@@ -193,6 +209,8 @@ export default function App() {
                 ? ['🎓 Docente FLC', '⏳ Pendiente de Admisión']
                 : ['🎓 Docente FLC', '❌ Solicitud No Admitida'],
           };
+          saveUserToDb(updated);
+          return updated;
         }
         return u;
       })
@@ -247,6 +265,7 @@ export default function App() {
 
   const handleRegister = (newUser: UserProfile) => {
     setUsers((prev) => [...prev, newUser]);
+    saveUserToDb(newUser);
     setCurrentUser(newUser);
     localStorage.setItem('flc_v2_current_user_id', newUser.id);
     showToast(`¡Cuenta creada con éxito! Bienvenido a FLC LAB, ${newUser.name}.`);
@@ -334,6 +353,42 @@ export default function App() {
     localStorage.setItem('flc_v2_bitacora', JSON.stringify(bitacoraEntries));
   }, [bitacoraEntries]);
 
+  // Firebase Firestore Real-Time Synchronization
+  useEffect(() => {
+    testFirestoreConnection();
+    seedInitialFirestoreData(
+      INITIAL_PROJECTS,
+      INITIAL_EVENTS,
+      INITIAL_COLLABORATIONS,
+      DEFAULT_CREATOR_PROFILES,
+      INITIAL_BITACORA_ENTRIES
+    );
+
+    const unsubProjects = subscribeToProjects((remote) => {
+      if (remote.length > 0) setProjects(remote);
+    });
+    const unsubEvents = subscribeToEvents((remote) => {
+      if (remote.length > 0) setEvents(remote);
+    });
+    const unsubCollabs = subscribeToCollaborations((remote) => {
+      if (remote.length > 0) setCollaborations(remote);
+    });
+    const unsubUsers = subscribeToUsers((remote) => {
+      if (remote.length > 0) setUsers(remote);
+    });
+    const unsubBitacora = subscribeToBitacora((remote) => {
+      if (remote.length > 0) setBitacoraEntries(remote);
+    });
+
+    return () => {
+      unsubProjects();
+      unsubEvents();
+      unsubCollabs();
+      unsubUsers();
+      unsubBitacora();
+    };
+  }, []);
+
   const [isNewBitacoraModalOpen, setIsNewBitacoraModalOpen] = useState(false);
   const [targetBitacoraProjectId, setTargetBitacoraProjectId] = useState<string | undefined>(undefined);
 
@@ -350,6 +405,7 @@ export default function App() {
       hasApplauded: true,
     };
     setBitacoraEntries((prev) => [entry, ...prev]);
+    saveBitacoraToDb(entry);
     showToast('¡Entrada de bitácora registrada en el cuaderno del taller!');
   };
 
@@ -357,19 +413,14 @@ export default function App() {
     setBitacoraEntries((prev) =>
       prev.map((e) => {
         if (e.id === entryId) {
-          if (e.hasApplauded) {
-            return {
-              ...e,
-              applauseCount: Math.max(0, e.applauseCount - 1),
-              hasApplauded: false,
-            };
-          } else {
-            return {
-              ...e,
-              applauseCount: e.applauseCount + 1,
-              hasApplauded: true,
-            };
-          }
+          const nextCount = e.hasApplauded ? Math.max(0, e.applauseCount - 1) : e.applauseCount + 1;
+          const updated = {
+            ...e,
+            applauseCount: nextCount,
+            hasApplauded: !e.hasApplauded,
+          };
+          saveBitacoraToDb(updated);
+          return updated;
         }
         return e;
       })
@@ -430,12 +481,14 @@ export default function App() {
   // Handlers
   const handleCreateProject = (newProj: Project) => {
     setProjects([newProj, ...projects]);
+    saveProjectToDb(newProj);
     showToast(`¡Proyecto "${newProj.title}" creado con éxito en el Lab!`);
   };
 
   const handleUpdateProject = (updated: Project) => {
     setProjects(projects.map((p) => (p.id === updated.id ? updated : p)));
     setSelectedProject(updated);
+    saveProjectToDb(updated);
     showToast(`Proyecto "${updated.title}" actualizado con éxito.`);
   };
 
@@ -444,21 +497,25 @@ export default function App() {
     if (selectedProject?.id === projectId) {
       setSelectedProject(null);
     }
+    deleteProjectFromDb(projectId);
     showToast('Proyecto eliminado correctamente.');
   };
 
   const handleUpdateEvent = (updated: LabEvent) => {
     setEvents(events.map((e) => (e.id === updated.id ? updated : e)));
+    saveEventToDb(updated);
     showToast(`Sesión "${updated.title}" actualizada con éxito.`);
   };
 
   const handleDeleteEvent = (eventId: string) => {
     setEvents(events.filter((e) => e.id !== eventId));
+    deleteEventFromDb(eventId);
     showToast('Sesión eliminada del calendario.');
   };
 
   const handleCreateEvent = (newEvent: LabEvent) => {
     setEvents([newEvent, ...events]);
+    saveEventToDb(newEvent);
     if (newEvent.isProposal) {
       showToast(`¡Propuesta "${newEvent.title}" registrada en el calendario con éxito!`);
     } else {
@@ -468,11 +525,14 @@ export default function App() {
 
   const handleApproveEvent = (eventId: string) => {
     setEvents(
-      events.map((evt) =>
-        evt.id === eventId
-          ? { ...evt, isProposal: false, status: 'oficial' }
-          : evt
-      )
+      events.map((evt) => {
+        if (evt.id === eventId) {
+          const approved = { ...evt, isProposal: false, status: 'oficial' as const };
+          saveEventToDb(approved);
+          return approved;
+        }
+        return evt;
+      })
     );
     showToast('¡Sesión aprobada y convertida en evento oficial del centro!');
   };
@@ -496,7 +556,7 @@ export default function App() {
               ? `¡Inscripción confirmada para "${evt.title}"! Ya puedes comentar.`
               : `Inscripción cancelada para "${evt.title}".`
           );
-          return {
+          const updatedEvt = {
             ...evt,
             isRegistered: nextRegistered,
             registeredUserIds: updatedRegisteredIds,
@@ -504,6 +564,8 @@ export default function App() {
               ? evt.attendeesCount + 1
               : Math.max(0, evt.attendeesCount - 1),
           };
+          saveEventToDb(updatedEvt);
+          return updatedEvt;
         }
         return evt;
       })
@@ -512,12 +574,20 @@ export default function App() {
 
   const handleSubmitCollaboration = (request: CollaborationRequest) => {
     setCollaborations([request, ...collaborations]);
+    saveCollabToDb(request);
     showToast(`¡Gracias ${request.name}! Tu solicitud de colaboración ha sido registrada.`);
   };
 
   const handleUpdateCollabStatus = (id: string, status: 'pendiente' | 'aprobada' | 'incorporado') => {
     setCollaborations(
-      collaborations.map((c) => (c.id === id ? { ...c, status } : c))
+      collaborations.map((c) => {
+        if (c.id === id) {
+          const updated = { ...c, status };
+          saveCollabToDb(updated);
+          return updated;
+        }
+        return c;
+      })
     );
     showToast('Estado de colaboración actualizado.');
   };

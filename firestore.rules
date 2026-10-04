@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // FLC Lab: educational maker lab platform
+    // Public read access for community participation
+    match /{document=**} {
+      allow read: if true;
+    }
+
+    match /projects/{projectId} {
+      allow read, write: if true;
+    }
+
+    match /events/{eventId} {
+      allow read, write: if true;
+    }
+
+    match /collaborations/{collabId} {
+      allow read, write: if true;
+    }
+
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    match /bitacora/{entryId} {
+      allow read, write: if true;
+    }
+  }
+}

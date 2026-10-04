@@ -1,0 +1,118 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "FLC Lab educational and maker project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "discipline": { "type": "string" },
+        "phase": { "type": "number" },
+        "trimester": { "type": "number" },
+        "summary": { "type": "string" },
+        "leadName": { "type": "string" },
+        "leadGroup": { "type": "string" },
+        "leadGradeOrDept": { "type": "string" },
+        "leadRole": { "type": "string" },
+        "openRoles": { "type": "array" },
+        "team": { "type": "array" },
+        "objectives": { "type": "array" },
+        "heroImage": { "type": "string" }
+      },
+      "required": ["id", "title", "discipline", "phase", "summary"]
+    },
+    "LabEvent": {
+      "title": "LabEvent",
+      "description": "Workshop, talk, or challenge session in FLC Lab",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string" },
+        "trimester": { "type": "number" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "location": { "type": "string" },
+        "description": { "type": "string" },
+        "speakerOrHost": { "type": "string" },
+        "attendeesCount": { "type": "number" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "title", "type", "date", "time"]
+    },
+    "CollaborationRequest": {
+      "title": "CollaborationRequest",
+      "description": "Proposal or join request from student, teacher, family or company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "group": { "type": "string" },
+        "gradeOrEntity": { "type": "string" },
+        "roles": { "type": "array" },
+        "disciplines": { "type": "array" },
+        "motivation": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "group", "roles"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Registered user profile with role and permissions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "group": { "type": "string" },
+        "gradeOrDept": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
+        "teacherStatus": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "group"]
+    },
+    "BitacoraEntry": {
+      "title": "BitacoraEntry",
+      "description": "Maker logbook entries",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "projectId": { "type": "string" },
+        "projectTitle": { "type": "string" },
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "authorRole": { "type": "string" },
+        "date": { "type": "string" },
+        "content": { "type": "string" },
+        "tags": { "type": "array" },
+        "applauseCount": { "type": "number" }
+      },
+      "required": ["id", "projectId", "title", "author", "content"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Collection of maker projects"
+    },
+    "/events/{eventId}": {
+      "schema": "LabEvent",
+      "description": "Calendar events and workshops"
+    },
+    "/collaborations/{collabId}": {
+      "schema": "CollaborationRequest",
+      "description": "Collaboration proposals and vacancy applications"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles and credentials"
+    },
+    "/bitacora/{entryId}": {
+      "schema": "BitacoraEntry",
+      "description": "Maker logbook entries"
+    }
+  }
+}
