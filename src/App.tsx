@@ -148,8 +148,8 @@ export default function App() {
 
   // Creator Users & Authentication state (Only Administrator initially)
   const [users, setUsers] = useState<UserProfile[]>(() => {
-    // Purge old mock data and reset active session so it starts logged out
-    ['flc_lab_users', 'flc_lab_current_user_id', 'flc_lab_projects', 'flc_lab_events', 'flc_lab_collaborations', 'flc_lab_bitacora', 'flc_v2_current_user_id'].forEach(
+    // Purge old mock data
+    ['flc_lab_users', 'flc_lab_current_user_id', 'flc_lab_projects', 'flc_lab_events', 'flc_lab_collaborations', 'flc_lab_bitacora'].forEach(
       (k) => localStorage.removeItem(k)
     );
 

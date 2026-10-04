@@ -315,7 +315,7 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Todos ({users.length})
+              Todos ({(users || []).length})
             </button>
             <button
               onClick={() => setSelectedGroup('alumnado')}

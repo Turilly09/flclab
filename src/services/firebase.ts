@@ -93,7 +93,7 @@ export function subscribeToProjects(onUpdate: (projects: Project[]) => void) {
     collection(db, PROJECTS_COLLECTION),
     (snapshot) => {
       if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => d.data() as Project);
+        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Project));
         onUpdate(list);
       }
     },
@@ -106,7 +106,7 @@ export function subscribeToEvents(onUpdate: (events: LabEvent[]) => void) {
     collection(db, EVENTS_COLLECTION),
     (snapshot) => {
       if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => d.data() as LabEvent);
+        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as LabEvent));
         onUpdate(list);
       }
     },
@@ -119,7 +119,7 @@ export function subscribeToCollaborations(onUpdate: (collabs: CollaborationReque
     collection(db, COLLABS_COLLECTION),
     (snapshot) => {
       if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => d.data() as CollaborationRequest);
+        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as CollaborationRequest));
         onUpdate(list);
       }
     },
@@ -132,7 +132,7 @@ export function subscribeToUsers(onUpdate: (users: UserProfile[]) => void) {
     collection(db, USERS_COLLECTION),
     (snapshot) => {
       if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => d.data() as UserProfile);
+        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as UserProfile));
         onUpdate(list);
       }
     },
@@ -145,7 +145,7 @@ export function subscribeToBitacora(onUpdate: (entries: BitacoraEntry[]) => void
     collection(db, BITACORA_COLLECTION),
     (snapshot) => {
       if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => d.data() as BitacoraEntry);
+        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as BitacoraEntry));
         onUpdate(list);
       }
     },
