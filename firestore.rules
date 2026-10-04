@@ -95,5 +95,11 @@ service cloud.firestore {
       allow create, update: if isValidId(entryId) && isValidBitacora(request.resource.data);
       allow delete: if true;
     }
+
+    // --- Carousel Slides Collection ---
+    match /carousel_slides/{slideId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(slideId);
+    }
   }
 }

@@ -22,7 +22,8 @@ import {
   Lock,
   Pencil,
   Crown,
-  MessageSquare
+  MessageSquare,
+  UserMinus
 } from 'lucide-react';
 
 interface ProjectDetailModalProps {
@@ -33,6 +34,7 @@ interface ProjectDetailModalProps {
   onUpdateProject: (updated: Project) => void;
   onDeleteProject?: (projectId: string) => void;
   onJoinRole: (projectId: string, roleId: RoleId) => void;
+  onUnenrollUser?: (projectId: string, userId: string) => void;
   isManageMode: boolean;
   bitacoraEntries?: BitacoraEntry[];
   onOpenNewBitacora?: (projectId: string) => void;
@@ -47,6 +49,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
   onUpdateProject,
   onDeleteProject,
   onJoinRole,
+  onUnenrollUser,
   isManageMode,
   bitacoraEntries = [],
   onOpenNewBitacora,
@@ -123,6 +126,31 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
         ...project,
         enrolledUserIds: [...currentEnrolled, currentUser.id],
       });
+    }
+  };
+
+  const handleUnenrollSelf = () => {
+    if (!currentUser) return;
+    if (window.confirm(`¿Estás seguro de que deseas desapuntarte del proyecto "${project.title}"?`)) {
+      const currentEnrolled = project.enrolledUserIds || [];
+      const updatedEnrolled = currentEnrolled.filter((id) => id !== currentUser.id);
+      const updatedTeam = project.team.filter((m) => {
+        const isSelf =
+          m.name.toLowerCase() === currentUser.name.toLowerCase() ||
+          currentUser.name.toLowerCase().includes(m.name.toLowerCase()) ||
+          m.name.toLowerCase().includes(currentUser.name.split(' ')[0].toLowerCase());
+        return !isSelf;
+      });
+
+      onUpdateProject({
+        ...project,
+        enrolledUserIds: updatedEnrolled,
+        team: updatedTeam,
+      });
+
+      if (onUnenrollUser) {
+        onUnenrollUser(project.id, currentUser.id);
+      }
     }
   };
 
@@ -428,6 +456,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
                   notEnrolledMessage="Solo los usuarios apuntados o colaboradores de este proyecto pueden publicar comentarios."
                   enrolledBadgeLabel={isLeader ? "Líder de Proyecto" : currentUser?.isAdmin ? "Administrador" : "Miembro Apuntado"}
                   onEnroll={handleEnrollProject}
+                  onUnenroll={!isLeader && !currentUser?.isAdmin ? handleUnenrollSelf : undefined}
                   onAddComment={handleAddProjectComment}
                   onDeleteComment={handleDeleteProjectComment}
                 />
@@ -579,6 +608,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
                 notEnrolledMessage="Solo los usuarios apuntados o colaboradores de este proyecto pueden publicar comentarios."
                 enrolledBadgeLabel={isLeader ? "Líder de Proyecto" : currentUser?.isAdmin ? "Administrador" : "Miembro Apuntado"}
                 onEnroll={handleEnrollProject}
+                onUnenroll={!isLeader && !currentUser?.isAdmin ? handleUnenrollSelf : undefined}
                 onAddComment={handleAddProjectComment}
                 onDeleteComment={handleDeleteProjectComment}
               />
@@ -587,16 +617,29 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
         </div>
 
         {/* Footer actions */}
-        <div className="p-4 sm:p-5 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
+        <div className="p-4 sm:p-5 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
           <div className="text-xs text-slate-400">
             Próximo hito: <span className="text-white font-semibold">{project.nextMilestone}</span>
           </div>
-          <button
-            onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors cursor-pointer"
-          >
-            Cerrar Ficha
-          </button>
+          <div className="flex items-center gap-2">
+            {isEnrolledInProject && !isLeader && !currentUser?.isAdmin && (
+              <button
+                type="button"
+                onClick={handleUnenrollSelf}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 hover:text-rose-200 border border-rose-500/30 text-xs font-bold transition-colors cursor-pointer"
+                title="Desapuntarme de este proyecto"
+              >
+                <UserMinus className="w-3.5 h-3.5 text-rose-400" />
+                <span>Desapuntarme</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="px-5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors cursor-pointer"
+            >
+              Cerrar Ficha
+            </button>
+          </div>
         </div>
       </div>
 

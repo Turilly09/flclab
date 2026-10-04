@@ -11,6 +11,7 @@ interface ItemCommentsSectionProps {
   notEnrolledMessage: string;
   enrolledBadgeLabel?: string;
   onEnroll: () => void;
+  onUnenroll?: () => void;
   onAddComment: (text: string) => void;
   onDeleteComment?: (commentId: string) => void;
 }
@@ -24,6 +25,7 @@ export const ItemCommentsSection: React.FC<ItemCommentsSectionProps> = ({
   notEnrolledMessage,
   enrolledBadgeLabel = 'Inscrito',
   onEnroll,
+  onUnenroll,
   onAddComment,
   onDeleteComment,
 }) => {
@@ -77,10 +79,22 @@ export const ItemCommentsSection: React.FC<ItemCommentsSectionProps> = ({
         </div>
 
         {isEnrolled && currentUser && (
-          <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-            <UserCheck className="w-3 h-3" />
-            <span>{enrolledBadgeLabel}</span>
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              <UserCheck className="w-3 h-3" />
+              <span>{enrolledBadgeLabel}</span>
+            </span>
+            {onUnenroll && (
+              <button
+                type="button"
+                onClick={onUnenroll}
+                className="text-[11px] font-medium text-rose-400 hover:text-rose-300 hover:underline cursor-pointer"
+                title="Desapuntarme de este proyecto"
+              >
+                Desapuntarme
+              </button>
+            )}
+          </div>
         )}
       </div>
 

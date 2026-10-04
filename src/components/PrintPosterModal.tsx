@@ -50,7 +50,7 @@ export const PrintPosterModal: React.FC<PrintPosterModalProps> = ({
             <div>
               <h3 className="text-sm font-bold text-white">Cartel Oficial para el Instituto (A4)</h3>
               <p className="text-[11px] text-slate-400">
-                Diseño idéntico al reel de Instagram para pasillos, aulas y tablón del IES
+                Diseño oficial de la convocatoria para pasillos, aulas y tablón del IES
               </p>
             </div>
           </div>

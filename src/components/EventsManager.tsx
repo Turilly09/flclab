@@ -492,17 +492,19 @@ export const EventsManager: React.FC<EventsManagerProps> = ({
                         }}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                           evt.isRegistered
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            ? 'bg-emerald-500/20 text-emerald-300 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 border border-emerald-500/40 group/reg'
                             : isFull
                             ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                             : 'bg-amber-400 hover:bg-amber-300 text-slate-950 font-black'
                         }`}
                         disabled={isFull && !evt.isRegistered}
+                        title={evt.isRegistered ? 'Pulsar para desapuntarte de esta cita' : 'Inscribirme a esta cita'}
                       >
                         {evt.isRegistered ? (
                           <>
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Inscrito</span>
+                            <Check className="w-3.5 h-3.5 group-hover/reg:hidden" />
+                            <span className="group-hover/reg:hidden">Inscrito</span>
+                            <span className="hidden group-hover/reg:inline text-rose-300">Desapuntarme</span>
                           </>
                         ) : isFull ? (
                           <span>Aforo Completo</span>

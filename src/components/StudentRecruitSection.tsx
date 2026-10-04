@@ -163,10 +163,10 @@ export const StudentRecruitSection: React.FC<StudentRecruitSectionProps> = ({
               </p>
             </div>
 
-            {/* Right: Requirements matching Instagram Video */}
+            {/* Right: Requirements for squad admission */}
             <div className="md:col-span-7 space-y-4 text-center sm:text-left">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                ¿Quién puede unirse al escuadrón? (Requisitos del Video)
+                ¿Quién puede unirse al escuadrón? (Requisitos Oficiales de Admisión)
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -45,6 +45,50 @@ export async function testFirestoreConnection(): Promise<boolean> {
   }
 }
 
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  }
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: null,
+      email: null,
+      emailVerified: null,
+      isAnonymous: null,
+      tenantId: null,
+      providerInfo: []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error Detailed Info:', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
 // Collections references
 const PROJECTS_COLLECTION = 'projects';
 const EVENTS_COLLECTION = 'events';
@@ -97,7 +141,7 @@ export function subscribeToProjects(onUpdate: (projects: Project[]) => void) {
         onUpdate(list);
       }
     },
-    (err) => console.warn('Error subscribing to projects:', err)
+    (err) => handleFirestoreError(err, OperationType.GET, PROJECTS_COLLECTION)
   );
 }
 
@@ -110,7 +154,7 @@ export function subscribeToEvents(onUpdate: (events: LabEvent[]) => void) {
         onUpdate(list);
       }
     },
-    (err) => console.warn('Error subscribing to events:', err)
+    (err) => handleFirestoreError(err, OperationType.GET, EVENTS_COLLECTION)
   );
 }
 
@@ -123,7 +167,7 @@ export function subscribeToCollaborations(onUpdate: (collabs: CollaborationReque
         onUpdate(list);
       }
     },
-    (err) => console.warn('Error subscribing to collaborations:', err)
+    (err) => handleFirestoreError(err, OperationType.GET, COLLABS_COLLECTION)
   );
 }
 
@@ -136,7 +180,7 @@ export function subscribeToUsers(onUpdate: (users: UserProfile[]) => void) {
         onUpdate(list);
       }
     },
-    (err) => console.warn('Error subscribing to users:', err)
+    (err) => handleFirestoreError(err, OperationType.GET, USERS_COLLECTION)
   );
 }
 
@@ -149,7 +193,7 @@ export function subscribeToBitacora(onUpdate: (entries: BitacoraEntry[]) => void
         onUpdate(list);
       }
     },
-    (err) => console.warn('Error subscribing to bitacora:', err)
+    (err) => handleFirestoreError(err, OperationType.GET, BITACORA_COLLECTION)
   );
 }
 
@@ -158,7 +202,7 @@ export async function saveProject(project: Project) {
   try {
     await setDoc(doc(db, PROJECTS_COLLECTION, project.id), project, { merge: true });
   } catch (err) {
-    console.error('Error saving project to Firestore:', err);
+    handleFirestoreError(err, OperationType.WRITE, `${PROJECTS_COLLECTION}/${project.id}`);
   }
 }
 
@@ -166,7 +210,7 @@ export async function deleteProjectFromDb(id: string) {
   try {
     await deleteDoc(doc(db, PROJECTS_COLLECTION, id));
   } catch (err) {
-    console.error('Error deleting project from Firestore:', err);
+    handleFirestoreError(err, OperationType.DELETE, `${PROJECTS_COLLECTION}/${id}`);
   }
 }
 
@@ -174,7 +218,7 @@ export async function saveEvent(event: LabEvent) {
   try {
     await setDoc(doc(db, EVENTS_COLLECTION, event.id), event, { merge: true });
   } catch (err) {
-    console.error('Error saving event to Firestore:', err);
+    handleFirestoreError(err, OperationType.WRITE, `${EVENTS_COLLECTION}/${event.id}`);
   }
 }
 
@@ -182,7 +226,7 @@ export async function deleteEventFromDb(id: string) {
   try {
     await deleteDoc(doc(db, EVENTS_COLLECTION, id));
   } catch (err) {
-    console.error('Error deleting event from Firestore:', err);
+    handleFirestoreError(err, OperationType.DELETE, `${EVENTS_COLLECTION}/${id}`);
   }
 }
 
@@ -190,7 +234,7 @@ export async function saveCollaboration(collab: CollaborationRequest) {
   try {
     await setDoc(doc(db, COLLABS_COLLECTION, collab.id), collab, { merge: true });
   } catch (err) {
-    console.error('Error saving collab to Firestore:', err);
+    handleFirestoreError(err, OperationType.WRITE, `${COLLABS_COLLECTION}/${collab.id}`);
   }
 }
 
@@ -198,7 +242,7 @@ export async function saveUser(user: UserProfile) {
   try {
     await setDoc(doc(db, USERS_COLLECTION, user.id), user, { merge: true });
   } catch (err) {
-    console.error('Error saving user to Firestore:', err);
+    handleFirestoreError(err, OperationType.WRITE, `${USERS_COLLECTION}/${user.id}`);
   }
 }
 
@@ -206,7 +250,7 @@ export async function deleteUserFromDb(id: string) {
   try {
     await deleteDoc(doc(db, USERS_COLLECTION, id));
   } catch (err) {
-    console.error('Error deleting user from Firestore:', err);
+    handleFirestoreError(err, OperationType.DELETE, `${USERS_COLLECTION}/${id}`);
   }
 }
 
@@ -214,7 +258,7 @@ export async function saveBitacora(entry: BitacoraEntry) {
   try {
     await setDoc(doc(db, BITACORA_COLLECTION, entry.id), entry, { merge: true });
   } catch (err) {
-    console.error('Error saving bitacora entry to Firestore:', err);
+    handleFirestoreError(err, OperationType.WRITE, `${BITACORA_COLLECTION}/${entry.id}`);
   }
 }
 
@@ -233,9 +277,7 @@ export function subscribeToCarouselSlides(callback: (slides: HeroCarouselSlide[]
       snapshot.forEach((d) => slides.push(d.data() as HeroCarouselSlide));
       callback(slides);
     },
-    (err) => {
-      console.warn('Firestore carousel_slides subscribe error:', err);
-    }
+    (err) => handleFirestoreError(err, OperationType.GET, CAROUSEL_COLLECTION)
   );
 }
 
@@ -243,7 +285,7 @@ export async function saveCarouselSlide(slide: HeroCarouselSlide) {
   try {
     await setDoc(doc(db, CAROUSEL_COLLECTION, slide.id), slide, { merge: true });
   } catch (err) {
-    console.error('Error saving carousel slide to Firestore:', err);
+    handleFirestoreError(err, OperationType.WRITE, `${CAROUSEL_COLLECTION}/${slide.id}`);
   }
 }
 
@@ -251,6 +293,6 @@ export async function deleteCarouselSlide(id: string) {
   try {
     await deleteDoc(doc(db, CAROUSEL_COLLECTION, id));
   } catch (err) {
-    console.error('Error deleting carousel slide from Firestore:', err);
+    handleFirestoreError(err, OperationType.DELETE, `${CAROUSEL_COLLECTION}/${id}`);
   }
 }

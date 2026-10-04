@@ -53,11 +53,9 @@ import { UserProfileModal } from './components/UserProfileModal';
 import { NewBitacoraModal } from './components/NewBitacoraModal';
 import { AuthModal } from './components/AuthModal';
 import { PermissionsMatrixModal } from './components/PermissionsMatrixModal';
-import { TeacherPasswordModal } from './components/TeacherPasswordModal';
 import { TeacherAdmissionModal } from './components/TeacherAdmissionModal';
 import { ExternalPartnersSection } from './components/ExternalPartnersSection';
 import { Footer } from './components/Footer';
-import { getCustomPdf, saveCustomPdf } from './utils/pdfStorage';
 import { safeStorage } from './utils/safeStorage';
 import {
   testFirestoreConnection,
@@ -80,75 +78,14 @@ import {
 } from './services/firebase';
 
 export default function App() {
-  const [customPdfBlob, setCustomPdfBlob] = useState<Blob | null>(null);
-  const pdfFileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    getCustomPdf().then((blob) => {
-      if (blob) {
-        setCustomPdfBlob(blob);
-        fetch('/api/upload-pdf', {
-          method: 'POST',
-          body: blob,
-        }).catch(() => {});
-      }
-    });
-  }, []);
-
-  const handleDownloadPdf = async () => {
-    let blob = customPdfBlob;
-    if (!blob) {
-      blob = await getCustomPdf();
-    }
-
-    if (blob) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'FLC_LAB_Que_Queremos_Ser_Original.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
-      return;
-    }
-
-    // Fallback: download from server
+  const handleDownloadPdf = () => {
+    // Fixed official presentation PDF dossier
     const a = document.createElement('a');
     a.href = '/flc-lab-presentacion.pdf';
     a.download = 'FLC_LAB_Que_Queremos_Ser.pdf';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  };
-
-  const handleManualPdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
-      alert('Por favor selecciona un archivo PDF válido (.pdf).');
-      return;
-    }
-
-    try {
-      await saveCustomPdf(file);
-      setCustomPdfBlob(file);
-      await fetch('/api/upload-pdf', {
-        method: 'POST',
-        body: file,
-      });
-      showToast('¡PDF original guardado y listo!');
-      const url = URL.createObjectURL(file);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
-    } catch (err) {
-      console.error('Error saving PDF:', err);
-    }
   };
 
   // Creator Users & Authentication state (Only Administrator initially)
@@ -186,14 +123,38 @@ export default function App() {
     return null;
   });
 
+  // Keep currentUser in sync with users real-time database state
+  useEffect(() => {
+    if (currentUser) {
+      const latest = users.find((u) => u.id === currentUser.id);
+      if (latest) {
+        if (
+          latest.name !== currentUser.name ||
+          latest.email !== currentUser.email ||
+          latest.group !== currentUser.group ||
+          latest.gradeOrDept !== currentUser.gradeOrDept ||
+          latest.teacherStatus !== currentUser.teacherStatus ||
+          JSON.stringify(latest.projectIds) !== JSON.stringify(currentUser.projectIds) ||
+          JSON.stringify(latest.registeredEventIds) !== JSON.stringify(currentUser.registeredEventIds) ||
+          JSON.stringify(latest.badgeTitles) !== JSON.stringify(currentUser.badgeTitles) ||
+          latest.avatarColor !== currentUser.avatarColor ||
+          latest.bio !== currentUser.bio ||
+          JSON.stringify(latest.skillsAndTools) !== JSON.stringify(currentUser.skillsAndTools) ||
+          JSON.stringify(latest.secondaryRoles) !== JSON.stringify(currentUser.secondaryRoles) ||
+          JSON.stringify(latest.favoriteDisciplines) !== JSON.stringify(currentUser.favoriteDisciplines)
+        ) {
+          setCurrentUser(latest);
+        }
+      }
+    }
+  }, [users, currentUser]);
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [viewedProfileUser, setViewedProfileUser] = useState<UserProfile | null>(null);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
-  const [isTeacherPasswordModalOpen, setIsTeacherPasswordModalOpen] = useState(false);
   const [isTeacherAdmissionModalOpen, setIsTeacherAdmissionModalOpen] = useState(false);
-  const [pendingTeacherCallback, setPendingTeacherCallback] = useState<(() => void) | null>(null);
 
   const handleUpdateUserTeacherStatus = (userId: string, newStatus: 'aprobado' | 'rechazado' | 'pendiente') => {
     setUsers((prev) =>
@@ -246,15 +207,92 @@ export default function App() {
     setIsProfileModalOpen(true);
   };
 
-  const handleRequestTeacherAccess = (onSuccess?: () => void) => {
-    setPendingTeacherCallback(() => () => {
-      const admin = users.find((u) => u.isAdmin);
-      if (admin) {
-        handleSwitchUser(admin);
+  const handleUnenrollProject = (projectId: string) => {
+    if (!currentUser) return;
+
+    // 1. Remove projectId from currentUser.projectIds
+    const updatedProjectIds = (currentUser.projectIds || []).filter((id) => id !== projectId);
+    const updatedUser: UserProfile = {
+      ...currentUser,
+      projectIds: updatedProjectIds,
+    };
+    handleUpdateUser(updatedUser);
+
+    // 2. Remove user from project enrolledUserIds and team
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id === projectId) {
+          const updatedEnrolled = (p.enrolledUserIds || []).filter((uid) => uid !== currentUser.id);
+          const updatedTeam = p.team.filter((m) => {
+            const isSelf =
+              m.name.toLowerCase() === currentUser.name.toLowerCase() ||
+              currentUser.name.toLowerCase().includes(m.name.toLowerCase()) ||
+              m.name.toLowerCase().includes(currentUser.name.split(' ')[0].toLowerCase());
+            return !isSelf;
+          });
+          const updatedProj: Project = {
+            ...p,
+            enrolledUserIds: updatedEnrolled,
+            team: updatedTeam,
+          };
+          saveProjectToDb(updatedProj);
+          return updatedProj;
+        }
+        return p;
+      })
+    );
+
+    // If currently opened project matches, update it
+    setSelectedProject((prev) => {
+      if (prev && prev.id === projectId) {
+        return {
+          ...prev,
+          enrolledUserIds: (prev.enrolledUserIds || []).filter((uid) => uid !== currentUser.id),
+          team: prev.team.filter((m) => {
+            const isSelf =
+              m.name.toLowerCase() === currentUser.name.toLowerCase() ||
+              currentUser.name.toLowerCase().includes(m.name.toLowerCase()) ||
+              m.name.toLowerCase().includes(currentUser.name.split(' ')[0].toLowerCase());
+            return !isSelf;
+          }),
+        };
       }
-      if (onSuccess) onSuccess();
+      return prev;
     });
-    setIsTeacherPasswordModalOpen(true);
+
+    showToast(`Te has desapuntado del proyecto con éxito.`);
+  };
+
+  const handleUnenrollEvent = (eventId: string) => {
+    if (!currentUser) return;
+
+    // 1. Remove eventId from currentUser.registeredEventIds
+    const updatedEventIds = (currentUser.registeredEventIds || []).filter((id) => id !== eventId);
+    const updatedUser: UserProfile = {
+      ...currentUser,
+      registeredEventIds: updatedEventIds,
+    };
+    handleUpdateUser(updatedUser);
+
+    // 2. Decrement attendeesCount and remove user from registeredUserIds
+    setEvents((prev) =>
+      prev.map((e) => {
+        if (e.id === eventId) {
+          const wasRegistered = e.isRegistered || (e.registeredUserIds || []).includes(currentUser.id);
+          const updatedEvt: LabEvent = {
+            ...e,
+            isRegistered: false,
+            registeredUserIds: (e.registeredUserIds || []).filter((uid) => uid !== currentUser.id),
+            attendeesCount: wasRegistered ? Math.max(0, e.attendeesCount - 1) : e.attendeesCount,
+          };
+          saveEventToDb(updatedEvt);
+          return updatedEvt;
+        }
+        return e;
+      })
+    );
+
+    showToast(`Has cancelado tu asistencia a la sesión.`);
   };
 
   const handleLogin = (user: UserProfile) => {
@@ -413,22 +451,87 @@ export default function App() {
     );
 
     const unsubProjects = subscribeToProjects((remote) => {
-      if (remote.length > 0) setProjects(remote);
+      if (remote.length > 0) {
+        setProjects((prev) => {
+          const remoteIds = new Set(remote.map((p) => p.id));
+          const localOnly = prev.filter((p) => !remoteIds.has(p.id));
+          if (localOnly.length > 0) {
+            console.log('Sincronizando proyectos locales con Firestore:', localOnly.map((p) => p.title));
+            localOnly.forEach((p) => saveProjectToDb(p));
+            return [...remote, ...localOnly];
+          }
+          return remote;
+        });
+      }
     });
     const unsubEvents = subscribeToEvents((remote) => {
-      if (remote.length > 0) setEvents(remote);
+      if (remote.length > 0) {
+        setEvents((prev) => {
+          const remoteIds = new Set(remote.map((e) => e.id));
+          const localOnly = prev.filter((e) => !remoteIds.has(e.id));
+          if (localOnly.length > 0) {
+            console.log('Sincronizando eventos locales con Firestore:', localOnly.map((e) => e.title));
+            localOnly.forEach((e) => saveEventToDb(e));
+            return [...remote, ...localOnly];
+          }
+          return remote;
+        });
+      }
     });
     const unsubCollabs = subscribeToCollaborations((remote) => {
-      if (remote.length > 0) setCollaborations(remote);
+      if (remote.length > 0) {
+        setCollaborations((prev) => {
+          const remoteIds = new Set(remote.map((c) => c.id));
+          const localOnly = prev.filter((c) => !remoteIds.has(c.id));
+          if (localOnly.length > 0) {
+            console.log('Sincronizando colaboraciones locales con Firestore:', localOnly.map((c) => c.name));
+            localOnly.forEach((c) => saveCollabToDb(c));
+            return [...remote, ...localOnly];
+          }
+          return remote;
+        });
+      }
     });
     const unsubUsers = subscribeToUsers((remote) => {
-      if (remote.length > 0) setUsers(remote);
+      if (remote.length > 0) {
+        setUsers((prev) => {
+          const remoteIds = new Set(remote.map((u) => u.id));
+          const localOnly = prev.filter((u) => !remoteIds.has(u.id));
+          if (localOnly.length > 0) {
+            console.log('Sincronizando usuarios locales con Firestore:', localOnly.map((u) => u.name));
+            localOnly.forEach((u) => saveUserToDb(u));
+            return [...remote, ...localOnly];
+          }
+          return remote;
+        });
+      }
     });
     const unsubBitacora = subscribeToBitacora((remote) => {
-      if (remote.length > 0) setBitacoraEntries(remote);
+      if (remote.length > 0) {
+        setBitacoraEntries((prev) => {
+          const remoteIds = new Set(remote.map((b) => b.id));
+          const localOnly = prev.filter((b) => !remoteIds.has(b.id));
+          if (localOnly.length > 0) {
+            console.log('Sincronizando bitácoras locales con Firestore:', localOnly.map((b) => b.title));
+            localOnly.forEach((b) => saveBitacoraToDb(b));
+            return [...remote, ...localOnly];
+          }
+          return remote;
+        });
+      }
     });
     const unsubCarousel = subscribeToCarouselSlides((remote) => {
-      if (remote.length > 0) setCarouselSlides(remote);
+      if (remote.length > 0) {
+        setCarouselSlides((prev) => {
+          const remoteIds = new Set(remote.map((s) => s.id));
+          const localOnly = prev.filter((s) => !remoteIds.has(s.id));
+          if (localOnly.length > 0) {
+            localOnly.forEach((s) => saveCarouselSlide(s));
+            return [...remote, ...localOnly];
+          }
+          return remote;
+        });
+      }
     });
 
     return () => {
@@ -687,10 +790,30 @@ export default function App() {
   const handleToggleRegisterEvent = (eventId: string) => {
     requireAuthForAction('inscribirse a las sesiones del taller', () => {
       if (!currentUser) return;
-      setEvents(
-        events.map((evt) => {
+      const targetEvent = events.find((e) => e.id === eventId);
+      if (!targetEvent) return;
+
+      const isCurrentlyRegistered =
+        targetEvent.isRegistered ||
+        (targetEvent.registeredUserIds || []).includes(currentUser.id) ||
+        (currentUser.registeredEventIds || []).includes(eventId);
+
+      const nextRegistered = !isCurrentlyRegistered;
+
+      // Sync user profile registeredEventIds
+      const updatedEventIds = nextRegistered
+        ? Array.from(new Set([...(currentUser.registeredEventIds || []), eventId]))
+        : (currentUser.registeredEventIds || []).filter((id) => id !== eventId);
+
+      const updatedUser: UserProfile = {
+        ...currentUser,
+        registeredEventIds: updatedEventIds,
+      };
+      handleUpdateUser(updatedUser);
+
+      setEvents((prev) =>
+        prev.map((evt) => {
           if (evt.id === eventId) {
-            const nextRegistered = !evt.isRegistered;
             const currentRegisteredIds = evt.registeredUserIds || [];
             let updatedRegisteredIds = [...currentRegisteredIds];
             if (nextRegistered && !updatedRegisteredIds.includes(currentUser.id)) {
@@ -698,11 +821,7 @@ export default function App() {
             } else if (!nextRegistered) {
               updatedRegisteredIds = updatedRegisteredIds.filter((id) => id !== currentUser.id);
             }
-            showToast(
-              nextRegistered
-                ? `¡Inscripción confirmada para ${currentUser.name} en "${evt.title}"!`
-                : `Inscripción cancelada para "${evt.title}".`
-            );
+
             const updatedEvt = {
               ...evt,
               isRegistered: nextRegistered,
@@ -716,6 +835,12 @@ export default function App() {
           }
           return evt;
         })
+      );
+
+      showToast(
+        nextRegistered
+          ? `¡Inscripción confirmada para ${currentUser.name} en "${targetEvent.title}"!`
+          : `Inscripción cancelada para "${targetEvent.title}".`
       );
     });
   };
@@ -860,15 +985,9 @@ export default function App() {
               ⏳
             </span>
             <span>
-              <strong>Cuenta docente en revisión:</strong> Tu perfil de profesorado está a la espera de ser admitido por el Administrador. Tienes acceso temporal de consulta hasta su validación.
+              <strong>Cuenta docente en revisión:</strong> Tu perfil de profesorado está a la espera de ser admitido por el Administrador único del centro. Tienes acceso temporal de consulta hasta su validación.
             </span>
           </div>
-          <button
-            onClick={() => handleRequestTeacherAccess()}
-            className="px-2.5 py-1 rounded bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold shrink-0 transition-colors cursor-pointer"
-          >
-            Validar con Clave del Centro
-          </button>
         </div>
       )}
 
@@ -1122,8 +1241,6 @@ export default function App() {
           });
         }}
         onOpenQuiz={() => setIsQuizModalOpen(true)}
-        onDownloadPdf={handleDownloadPdf}
-        onUploadPdf={() => pdfFileInputRef.current?.click()}
       />
 
       {/* Modals */}
@@ -1135,6 +1252,7 @@ export default function App() {
         onUpdateProject={handleUpdateProject}
         onDeleteProject={handleDeleteProject}
         onJoinRole={handleJoinRoleFromProject}
+        onUnenrollUser={(projId, userId) => handleUnenrollProject(projId)}
         isManageMode={isManageMode && !!currentUser?.isAdmin}
         bitacoraEntries={bitacoraEntries}
         onOpenNewBitacora={handleOpenNewBitacora}
@@ -1209,29 +1327,17 @@ export default function App() {
           currentUser={currentUser || users[0]}
           profileUser={viewedProfileUser}
           onSwitchToUser={(user) => {
-            if (user.isAdmin) {
-              handleRequestTeacherAccess(() => {
-                setViewedProfileUser(null);
-              });
-            } else {
-              handleSwitchUser(user);
-              setViewedProfileUser(null);
-            }
+            handleSwitchUser(user);
+            setViewedProfileUser(null);
           }}
           projects={projects}
           events={events}
           onOpenProjectDetail={(p) => setSelectedProject(p)}
+          onUpdateUser={handleUpdateUser}
+          onUnenrollProject={handleUnenrollProject}
+          onUnenrollEvent={handleUnenrollEvent}
         />
       )}
-
-      {/* Hidden file picker for linking original PDF if needed */}
-      <input
-        ref={pdfFileInputRef}
-        type="file"
-        accept="application/pdf,.pdf"
-        className="hidden"
-        onChange={handleManualPdfUpload}
-      />
 
       {/* Permissions Matrix & RBAC Modal */}
       <PermissionsMatrixModal
@@ -1240,28 +1346,8 @@ export default function App() {
         currentUser={currentUser}
         allUsers={users}
         onSwitchUser={handleSwitchUser}
-        onRequestTeacherAccess={(cb) => handleRequestTeacherAccess(cb)}
         onOpenAuthModal={handleOpenAuthModal}
         onLogout={handleLogout}
-      />
-
-      {/* Teacher Password Protection Modal for Tokita Ohma */}
-      <TeacherPasswordModal
-        isOpen={isTeacherPasswordModalOpen}
-        onClose={() => {
-          setIsTeacherPasswordModalOpen(false);
-          setPendingTeacherCallback(null);
-        }}
-        onSuccess={() => {
-          if (pendingTeacherCallback) {
-            pendingTeacherCallback();
-            setPendingTeacherCallback(null);
-          } else {
-            const admin = users.find((u) => u.isAdmin);
-            if (admin) handleSwitchUser(admin);
-          }
-          showToast('¡Autenticado como Administrador con éxito!');
-        }}
       />
 
       {/* Teacher Admission & Verification Modal for Admin */}

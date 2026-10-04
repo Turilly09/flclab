@@ -4,11 +4,9 @@ import { Crown, Mail, School, Sparkles, Heart } from 'lucide-react';
 interface FooterProps {
   onOpenCollab: () => void;
   onOpenQuiz: () => void;
-  onDownloadPdf: () => void;
-  onUploadPdf?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenCollab, onOpenQuiz, onDownloadPdf, onUploadPdf }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenCollab, onOpenQuiz }) => {
   return (
     <footer className="bg-[#070A12] border-t border-slate-800 text-slate-400 py-12 sm:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
@@ -49,13 +47,6 @@ export const Footer: React.FC<FooterProps> = ({ onOpenCollab, onOpenQuiz, onDown
               <span>flclab@iesutrillas.es</span>
             </a>
             <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 text-xs text-slate-400">
-              <button
-                onClick={onDownloadPdf}
-                className="hover:text-amber-300 text-amber-400/90 font-semibold transition-colors cursor-pointer"
-              >
-                Descargar Dossier (PDF)
-              </button>
-              <span>·</span>
               <button onClick={onOpenQuiz} className="hover:text-amber-300 transition-colors cursor-pointer">
                 Test de Roles
               </button>
@@ -63,18 +54,6 @@ export const Footer: React.FC<FooterProps> = ({ onOpenCollab, onOpenQuiz, onDown
               <button onClick={onOpenCollab} className="hover:text-amber-300 transition-colors cursor-pointer">
                 Formulario de Colaboración
               </button>
-              {onUploadPdf && (
-                <>
-                  <span>·</span>
-                  <button
-                    onClick={onUploadPdf}
-                    className="text-slate-500 hover:text-amber-400 transition-colors cursor-pointer text-[11px]"
-                    title="Vincular el archivo PDF original de tu ordenador"
-                  >
-                    Vincular PDF original
-                  </button>
-                </>
-              )}
             </div>
           </div>
         </div>

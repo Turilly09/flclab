@@ -576,7 +576,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </label>
                 <select
                   value={regPrimaryRole}
-                  onChange={(e) => setRegPrimaryRole(e.target.value as RoleId)}
+                  onChange={(e) => {
+                    const newPrimary = e.target.value as RoleId;
+                    setRegPrimaryRole(newPrimary);
+                    setRegSecondaryRoles((prev) => prev.filter((r) => r !== newPrimary));
+                  }}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none cursor-pointer"
                 >
                   {ROLES.map((r) => (
@@ -585,6 +589,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-400">
+                    Roles Secundarios (Opcional, hasta 2)
+                  </label>
+                  <span className="text-[10px] font-mono text-amber-400">
+                    {regSecondaryRoles.length} / 2 seleccionados
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5">
+                  {ROLES.map((r) => {
+                    if (r.id === regPrimaryRole) return null;
+                    const isSelected = regSecondaryRoles.includes(r.id);
+                    return (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setRegSecondaryRoles(regSecondaryRoles.filter((sid) => sid !== r.id));
+                          } else {
+                            if (regSecondaryRoles.length >= 2) return;
+                            setRegSecondaryRoles([...regSecondaryRoles, r.id]);
+                          }
+                        }}
+                        className={`px-2.5 py-1.5 rounded-lg border text-left text-xs transition-all cursor-pointer flex items-center justify-between ${
+                          isSelected
+                            ? 'bg-amber-400/20 border-amber-400 text-white font-bold'
+                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <span className="truncate">{r.name}</span>
+                        {isSelected && <span className="text-[10px] text-amber-400">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div>

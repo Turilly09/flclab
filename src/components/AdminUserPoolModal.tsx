@@ -76,6 +76,8 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
     e.preventDefault();
     if (!editingUser) return;
 
+    const isUniqueAdmin = editingUser.id === 'admin-flc';
+
     const updated: UserProfile = {
       ...editingUser,
       name: editName.trim(),
@@ -83,8 +85,8 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
       email: editEmail.trim(),
       group: editGroup,
       gradeOrDept: editGrade.trim(),
-      isAdmin: editIsAdmin,
-      roleType: editIsAdmin ? 'admin' : 'creador',
+      isAdmin: isUniqueAdmin,
+      roleType: isUniqueAdmin ? 'admin' : 'creador',
       teacherStatus: editGroup === 'profesorado' ? editTeacherStatus : undefined,
     };
 
@@ -236,21 +238,6 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
                   <option value="familias">Familias (Tutores)</option>
                   <option value="entidades_externas">Entidades / Empresas / Mentores</option>
                 </select>
-              </div>
-
-              <div className="flex flex-col justify-center">
-                <label className="flex items-center gap-2 cursor-pointer mt-4">
-                  <input
-                    type="checkbox"
-                    checked={editIsAdmin}
-                    onChange={(e) => setEditIsAdmin(e.target.checked)}
-                    className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400 bg-slate-900 border-slate-800"
-                  />
-                  <span className="text-xs font-bold text-slate-200">¿Asignar Rol de Administrador FLC LAB?</span>
-                </label>
-                <p className="text-[10px] text-slate-500 ml-6">
-                  Permite añadir sesiones, resetear datos y gestionar este panel de usuarios.
-                </p>
               </div>
             </div>
 

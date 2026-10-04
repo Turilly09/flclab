@@ -25,7 +25,6 @@ interface PermissionsMatrixModalProps {
   currentUser: UserProfile | null;
   allUsers: UserProfile[];
   onSwitchUser: (user: UserProfile) => void;
-  onRequestTeacherAccess?: (onSuccess: () => void) => void;
   onOpenAuthModal: (tab: 'login' | 'register') => void;
   onLogout: () => void;
 }
@@ -36,7 +35,6 @@ export const PermissionsMatrixModal: React.FC<PermissionsMatrixModalProps> = ({
   currentUser,
   allUsers,
   onSwitchUser,
-  onRequestTeacherAccess,
   onOpenAuthModal,
   onLogout,
 }) => {
@@ -49,14 +47,14 @@ export const PermissionsMatrixModal: React.FC<PermissionsMatrixModalProps> = ({
   const rolesDetails = [
     {
       id: 'admin' as const,
-      title: 'Administrador / Coordinador Principal',
+      title: 'Administrador / Coordinador Principal (Único)',
       sampleName: 'Administrador FLC',
       sampleId: 'admin',
       color: '#10B981',
       badge: 'Control Total',
       icon: <ShieldCheck className="w-5 h-5 text-emerald-400" />,
       description:
-        'Superusuario responsable del espacio maker y la gobernanza del centro. Dispone de privilegios totales de administración, publicación, copias de seguridad y validación de personal docente.',
+        'Superusuario único responsable del espacio maker y la gobernanza del centro. Dispone de privilegios totales de administración, publicación, copias de seguridad y validación de personal docente.',
       canCreate: [
         'Crear proyectos oficiales del centro con máxima jerarquía.',
         'Convocar talleres, masterclasses, hitos trimestrales y ferias en la agenda.',
@@ -71,7 +69,7 @@ export const PermissionsMatrixModal: React.FC<PermissionsMatrixModalProps> = ({
         'Restaurar o exportar copias de seguridad del laboratorio.',
       ],
       restrictions: [
-        'Debe custodiar la clave de acceso de administración institucional.',
+        'El rol de administrador es único y centralizado para la coordinación del centro.',
       ],
     },
     {
@@ -208,23 +206,13 @@ export const PermissionsMatrixModal: React.FC<PermissionsMatrixModalProps> = ({
       setSelectedGroup('public');
       onClose();
     } else if (targetId === 'admin') {
-      if (onRequestTeacherAccess) {
-        onRequestTeacherAccess(() => {
-          const adminUser = allUsers.find((u) => u.isAdmin);
-          if (adminUser) {
-            onSwitchUser(adminUser);
-            setSelectedGroup('admin');
-            onClose();
-          }
-        });
+      if (currentUser?.isAdmin) {
+        onClose();
         return;
       }
-      const adminUser = allUsers.find((u) => u.isAdmin);
-      if (adminUser) {
-        onSwitchUser(adminUser);
-        setSelectedGroup('admin');
-        onClose();
-      }
+      // The administrator is unique; to access, user must log in with admin credentials
+      onOpenAuthModal('login');
+      onClose();
     } else {
       onOpenAuthModal('register');
       onClose();
