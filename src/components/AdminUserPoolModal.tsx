@@ -14,7 +14,7 @@ interface AdminUserPoolModalProps {
 export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
   isOpen,
   onClose,
-  users,
+  users = [],
   onUpdateUser,
   onDeleteUser,
   currentUser,
@@ -34,14 +34,16 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Filtered users list
+  // Filtered users list with extreme NoSQL defense
   const filteredUsers = useMemo(() => {
-    return (users || []).filter((u) => {
+    const rawUsers = Array.isArray(users) ? users : [];
+    return rawUsers.filter((u) => {
       if (!u) return false;
-      const name = u.name || '';
-      const handle = u.handle || '';
-      const email = u.email || '';
-      const group = u.group || 'alumnado';
+      
+      const name = typeof u.name === 'string' ? u.name : '';
+      const handle = typeof u.handle === 'string' ? u.handle : '';
+      const email = typeof u.email === 'string' ? u.email : '';
+      const group = typeof u.group === 'string' ? u.group : 'alumnado';
 
       const matchesSearch =
         name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -57,13 +59,17 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
   const handleStartEdit = (user: UserProfile) => {
     if (!user) return;
     setEditingUser(user);
-    setEditName(user.name || '');
-    setEditHandle(user.handle || '');
-    setEditEmail(user.email || '');
-    setEditGroup(user.group || 'alumnado');
-    setEditGrade(user.gradeOrDept || '');
+    setEditName(typeof user.name === 'string' ? user.name : '');
+    setEditHandle(typeof user.handle === 'string' ? user.handle : '');
+    setEditEmail(typeof user.email === 'string' ? user.email : '');
+    setEditGroup(typeof user.group === 'string' ? user.group : 'alumnado');
+    setEditGrade(typeof user.gradeOrDept === 'string' ? user.gradeOrDept : '');
     setEditIsAdmin(!!user.isAdmin);
-    setEditTeacherStatus(user.teacherStatus || 'aprobado');
+    setEditTeacherStatus(
+      user.teacherStatus === 'pendiente' || user.teacherStatus === 'aprobado' || user.teacherStatus === 'rechazado'
+        ? user.teacherStatus
+        : 'aprobado'
+    );
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
@@ -73,7 +79,7 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
     const updated: UserProfile = {
       ...editingUser,
       name: editName.trim(),
-      handle: editHandle.trim(),
+      handle: editHandle.trim().startsWith('@') ? editHandle.trim() : `@${editHandle.trim()}`,
       email: editEmail.trim(),
       group: editGroup,
       gradeOrDept: editGrade.trim(),
@@ -88,18 +94,20 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
 
   const handleDeleteConfirm = (userId: string, name: string) => {
     if (!userId) return;
-    if (userId === currentUser?.id) {
+    const currentId = currentUser?.id;
+    if (userId === currentId) {
       alert('No puedes eliminar tu propia cuenta de administrador en sesión.');
       return;
     }
-    const confirm = window.confirm(`¿Estás completamente seguro de que deseas eliminar a ${name || 'este usuario'} de la pool de usuarios? Esta acción no se puede deshacer.`);
+    const safeName = typeof name === 'string' ? name : 'este usuario';
+    const confirm = window.confirm(`¿Estás completamente seguro de que deseas eliminar a ${safeName} de la pool de usuarios? Esta acción no se puede deshacer.`);
     if (confirm) {
       onDeleteUser(userId);
     }
   };
 
-  const getGroupIcon = (group: CollaboratorGroup) => {
-    const safeGroup = group || 'alumnado';
+  const getGroupIcon = (group: any) => {
+    const safeGroup = typeof group === 'string' ? group : 'alumnado';
     switch (safeGroup) {
       case 'alumnado':
         return <Users className="w-4 h-4 text-cyan-400" />;
@@ -114,8 +122,8 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
     }
   };
 
-  const getGroupLabel = (group: CollaboratorGroup) => {
-    const safeGroup = group || 'alumnado';
+  const getGroupLabel = (group: any) => {
+    const safeGroup = typeof group === 'string' ? group : 'alumnado';
     switch (safeGroup) {
       case 'alumnado':
         return 'Alumno / Creador';
@@ -126,7 +134,7 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
       case 'entidades_externas':
         return 'Colaborador Externo';
       default:
-        return 'Usuario';
+        return String(safeGroup);
     }
   };
 
@@ -142,7 +150,7 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
             <div>
               <h3 className="text-lg font-black text-white">Pool de Usuarios FLC LAB</h3>
               <p className="text-xs text-slate-400">
-                Administra todas las cuentas de Alumnos, Docentes, Familias y Colaboradores registrados.
+                Administra todas las cuentas de Alumnos, Docentes, Familias y Colaboradores registrados de forma flexible.
               </p>
             </div>
           </div>
@@ -160,7 +168,7 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
           <form onSubmit={handleSaveEdit} className="bg-slate-950 p-5 rounded-2xl border border-amber-400/30 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
               <span className="text-xs font-black uppercase text-amber-400">
-                Editar Cuenta de: {editingUser.name}
+                Editar Cuenta de: {typeof editingUser.name === 'string' ? editingUser.name : 'Sin nombre'}
               </span>
               <button
                 type="button"
@@ -387,54 +395,62 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
                 </thead>
                 <tbody className="divide-y divide-slate-900">
                   {filteredUsers.map((u) => {
-                    const isSelf = u.id === currentUser?.id;
+                    const safeId = typeof u.id === 'string' ? u.id : String(Math.random());
+                    const isSelf = safeId === currentUser?.id;
                     const isUserAdmin = !!u.isAdmin;
+                    const safeName = typeof u.name === 'string' ? u.name : 'Sin nombre';
+                    const safeHandle = typeof u.handle === 'string' ? u.handle : '@usuario';
+                    const safeEmail = typeof u.email === 'string' ? u.email : '-';
+                    const safeGrade = typeof u.gradeOrDept === 'string' ? u.gradeOrDept : '-';
+                    const safeAvatarColor = typeof u.avatarColor === 'string' ? u.avatarColor : '#10B981';
+                    const safeGroup = typeof u.group === 'string' ? u.group : 'alumnado';
+                    const safeTeacherStatus = typeof u.teacherStatus === 'string' ? u.teacherStatus : 'pendiente';
 
                     return (
-                      <tr key={u.id} className="hover:bg-slate-900/40 transition-colors">
+                      <tr key={safeId} className="hover:bg-slate-900/40 transition-colors">
                         <td className="p-3.5 pl-4">
                           <div className="flex items-center gap-2.5">
                             <div
-                              className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-slate-950 uppercase shadow-sm"
-                              style={{ backgroundColor: u.avatarColor || '#e2e8f0' }}
+                              className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-slate-950 uppercase shadow-sm shrink-0"
+                              style={{ backgroundColor: safeAvatarColor }}
                             >
-                              {(u.name || 'U').charAt(0)}
+                              {String(safeName || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div>
                               <div className="font-bold text-white flex items-center gap-1">
-                                <span>{u.name || 'Sin nombre'}</span>
+                                <span>{safeName}</span>
                                 {isSelf && (
                                   <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/25 text-emerald-400 border border-emerald-500/30">
                                     Tú
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[10px] text-slate-400 font-mono">{u.handle || '@usuario'}</div>
+                              <div className="text-[10px] text-slate-400 font-mono">{safeHandle}</div>
                             </div>
                           </div>
                         </td>
 
                         <td className="p-3.5">
                           <div className="flex items-center gap-1.5">
-                            {getGroupIcon(u.group)}
-                            <span className="text-slate-300 font-semibold">{getGroupLabel(u.group)}</span>
+                            {getGroupIcon(safeGroup)}
+                            <span className="text-slate-300 font-semibold">{getGroupLabel(safeGroup)}</span>
                           </div>
-                          {u.group === 'profesorado' && (
+                          {safeGroup === 'profesorado' && (
                             <span className={`inline-block text-[9px] px-1.5 py-0.2 font-black rounded mt-0.5 uppercase ${
-                              u.teacherStatus === 'aprobado' ? 'bg-emerald-500/25 text-emerald-400' :
-                              u.teacherStatus === 'pendiente' ? 'bg-amber-500/25 text-amber-400 animate-pulse' : 'bg-rose-500/25 text-rose-400'
+                              safeTeacherStatus === 'aprobado' ? 'bg-emerald-500/25 text-emerald-400' :
+                              safeTeacherStatus === 'pendiente' ? 'bg-amber-500/25 text-amber-400 animate-pulse' : 'bg-rose-500/25 text-rose-400'
                             }`}>
-                              {u.teacherStatus || 'pendiente'}
+                              {safeTeacherStatus}
                             </span>
                           )}
                         </td>
 
                         <td className="p-3.5">
-                          <span className="font-semibold text-slate-300">{u.gradeOrDept || '-'}</span>
+                          <span className="font-semibold text-slate-300">{safeGrade}</span>
                         </td>
 
                         <td className="p-3.5">
-                          <span className="text-slate-400 font-mono">{u.email || '-'}</span>
+                          <span className="text-slate-400 font-mono">{safeEmail}</span>
                         </td>
 
                         <td className="p-3.5">
@@ -457,17 +473,19 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
                               onClick={() => handleStartEdit(u)}
                               className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer"
                               title="Editar datos de usuario"
+                              type="button"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
 
                             <button
-                              onClick={() => handleDeleteConfirm(u.id, u.name)}
+                              onClick={() => handleDeleteConfirm(safeId, safeName)}
                               className={`p-1.5 rounded-lg bg-slate-900 hover:bg-rose-950 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer ${
                                 isSelf ? 'opacity-40 cursor-not-allowed' : ''
                               }`}
                               disabled={isSelf}
                               title={isSelf ? 'No puedes borrarte a ti mismo' : 'Eliminar usuario'}
+                              type="button"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -486,7 +504,7 @@ export const AdminUserPoolModal: React.FC<AdminUserPoolModalProps> = ({
         <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-950 border border-slate-800 text-[10px] text-slate-400">
           <AlertCircle className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>
-            <strong>Consejo administrativo:</strong> Cualquier usuario eliminado aquí perderá inmediatamente su derecho de acceso y sus propuestas de proyectos o colaboraciones quedarán desvinculadas de su perfil personal, aunque se mantendrán para no romper el historial de la base de datos.
+            <strong>Consejo administrativo NoSQL:</strong> Cualquier cambio o eliminación de perfiles se propagará en tiempo real. La interfaz gestiona de forma segura campos flexibles o perfiles antiguos con estructuras asimétricas.
           </span>
         </div>
       </div>

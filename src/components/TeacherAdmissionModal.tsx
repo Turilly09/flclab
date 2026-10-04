@@ -12,13 +12,15 @@ interface TeacherAdmissionModalProps {
 export const TeacherAdmissionModal: React.FC<TeacherAdmissionModalProps> = ({
   isOpen,
   onClose,
-  users,
+  users = [],
   onUpdateUserTeacherStatus,
 }) => {
   if (!isOpen) return null;
 
+  const rawUsers = Array.isArray(users) ? users : [];
+
   // Filter all non-superadmin users who registered as profesorado
-  const teacherUsers = users.filter((u) => u.group === 'profesorado' && !u.isAdmin);
+  const teacherUsers = rawUsers.filter((u) => u && u.group === 'profesorado' && !u.isAdmin);
   const pendingTeachers = teacherUsers.filter((u) => (u.teacherStatus || 'pendiente') === 'pendiente');
   const approvedTeachers = teacherUsers.filter((u) => u.teacherStatus === 'aprobado');
   const rejectedTeachers = teacherUsers.filter((u) => u.teacherStatus === 'rechazado');
@@ -95,13 +97,13 @@ export const TeacherAdmissionModal: React.FC<TeacherAdmissionModalProps> = ({
                           className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-slate-950 shrink-0 text-sm shadow-sm"
                           style={{ backgroundColor: teacher.avatarColor || '#10B981' }}
                         >
-                          {teacher.name.charAt(0)}
+                          {String(teacher.name || 'U').charAt(0).toUpperCase()}
                         </div>
 
                         <div className="space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="text-sm font-bold text-white">{teacher.name}</h4>
-                            <span className="text-xs text-slate-400 font-mono">{teacher.handle}</span>
+                            <h4 className="text-sm font-bold text-white">{typeof teacher.name === 'string' ? teacher.name : 'Sin nombre'}</h4>
+                            <span className="text-xs text-slate-400 font-mono">{typeof teacher.handle === 'string' ? teacher.handle : '@usuario'}</span>
 
                             {/* Status badge */}
                             {status === 'pendiente' && (
