@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LabEvent, EventType } from '../types/flc';
 import { X, Trash2, Save, Calendar as CalendarIcon, Clock, MapPin, Users, AlertCircle } from 'lucide-react';
+import { ASSET_IMAGES } from '../data/flcInitialData';
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
   const [maxCapacity, setMaxCapacity] = useState(String(event.maxCapacity || 40));
   const [description, setDescription] = useState(event.description);
   const [isOfficial, setIsOfficial] = useState(!event.isProposal);
+  const [thumbnail, setThumbnail] = useState(event.thumbnail || '');
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -61,6 +63,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
       description: description.trim(),
       isProposal: !isOfficial,
       status: isOfficial ? 'oficial' : 'propuesta_pendiente',
+      thumbnail: thumbnail.trim() || undefined,
     };
 
     onSave(updated);
@@ -118,6 +121,34 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
               }}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
             />
+          </div>
+
+          {/* Thumbnail / Image */}
+          <div>
+            <label className="block font-bold text-slate-200 mb-1">Imagen de Portada (URL o Ruta de Asset)</label>
+            <input
+              type="text"
+              value={thumbnail}
+              onChange={(e) => setThumbnail(e.target.value)}
+              placeholder="Ej: https://images.unsplash.com/... o chasis.jpg"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+            />
+            <div className="flex flex-wrap gap-2 mt-2">
+              {Object.entries(ASSET_IMAGES).map(([name, url]) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setThumbnail(url)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold shrink-0 border transition-all cursor-pointer ${
+                    thumbnail === url
+                      ? 'bg-amber-400 text-slate-950 border-amber-400'
+                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  Asset: {name === 'hero' ? 'General' : name === 'game' ? 'Videojuegos' : name === 'robotics' ? 'Robótica/3D' : 'Mesa'}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Type & Trimester */}

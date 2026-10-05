@@ -133,6 +133,7 @@ export interface LabEvent {
   status?: 'oficial' | 'propuesta_pendiente';
   registeredUserIds?: string[];
   comments?: ItemComment[];
+  thumbnail?: string;
 }
 
 export type CollaboratorGroup = 'alumnado' | 'profesorado' | 'familias' | 'entidades_externas';

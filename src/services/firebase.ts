@@ -4,6 +4,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   setDoc,
   deleteDoc,
   onSnapshot,
@@ -105,8 +106,8 @@ export async function seedInitialFirestoreData(
   initialBitacora: BitacoraEntry[]
 ) {
   try {
-    const projectsSnap = await getDocs(collection(db, PROJECTS_COLLECTION));
-    if (projectsSnap.empty) {
+    const configSnap = await getDoc(doc(db, 'metadata', 'config'));
+    if (!configSnap.exists()) {
       const batch = writeBatch(db);
       initialProjects.forEach((p) => {
         batch.set(doc(db, PROJECTS_COLLECTION, p.id), p);
@@ -123,6 +124,7 @@ export async function seedInitialFirestoreData(
       initialBitacora.forEach((b) => {
         batch.set(doc(db, BITACORA_COLLECTION, b.id), b);
       });
+      batch.set(doc(db, 'metadata', 'config'), { seeded: true });
       await batch.commit();
       console.log('FLC Lab Firestore initialized with school initial data');
     }
@@ -136,10 +138,8 @@ export function subscribeToProjects(onUpdate: (projects: Project[]) => void) {
   return onSnapshot(
     collection(db, PROJECTS_COLLECTION),
     (snapshot) => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Project));
-        onUpdate(list);
-      }
+      const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Project));
+      onUpdate(list);
     },
     (err) => handleFirestoreError(err, OperationType.GET, PROJECTS_COLLECTION)
   );
@@ -149,10 +149,8 @@ export function subscribeToEvents(onUpdate: (events: LabEvent[]) => void) {
   return onSnapshot(
     collection(db, EVENTS_COLLECTION),
     (snapshot) => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as LabEvent));
-        onUpdate(list);
-      }
+      const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as LabEvent));
+      onUpdate(list);
     },
     (err) => handleFirestoreError(err, OperationType.GET, EVENTS_COLLECTION)
   );
@@ -162,10 +160,8 @@ export function subscribeToCollaborations(onUpdate: (collabs: CollaborationReque
   return onSnapshot(
     collection(db, COLLABS_COLLECTION),
     (snapshot) => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as CollaborationRequest));
-        onUpdate(list);
-      }
+      const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as CollaborationRequest));
+      onUpdate(list);
     },
     (err) => handleFirestoreError(err, OperationType.GET, COLLABS_COLLECTION)
   );
@@ -175,10 +171,8 @@ export function subscribeToUsers(onUpdate: (users: UserProfile[]) => void) {
   return onSnapshot(
     collection(db, USERS_COLLECTION),
     (snapshot) => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as UserProfile));
-        onUpdate(list);
-      }
+      const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as UserProfile));
+      onUpdate(list);
     },
     (err) => handleFirestoreError(err, OperationType.GET, USERS_COLLECTION)
   );
@@ -188,10 +182,8 @@ export function subscribeToBitacora(onUpdate: (entries: BitacoraEntry[]) => void
   return onSnapshot(
     collection(db, BITACORA_COLLECTION),
     (snapshot) => {
-      if (!snapshot.empty) {
-        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as BitacoraEntry));
-        onUpdate(list);
-      }
+      const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as BitacoraEntry));
+      onUpdate(list);
     },
     (err) => handleFirestoreError(err, OperationType.GET, BITACORA_COLLECTION)
   );

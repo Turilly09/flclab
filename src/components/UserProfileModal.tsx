@@ -32,7 +32,7 @@ import {
 interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentUser: UserProfile;
+  currentUser: UserProfile | null;
   profileUser?: UserProfile | null;
   onSwitchToUser?: (user: UserProfile) => void;
   projects: Project[];
@@ -86,9 +86,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [formAvatarColor, setFormAvatarColor] = useState('#F59E0B');
   const [editError, setEditError] = useState<string | null>(null);
 
-  const activeProfile = profileUser || currentUser;
-  const isViewingSelf = activeProfile.id === currentUser.id;
-  const canEdit = Boolean(isViewingSelf || currentUser.isAdmin);
+  const activeProfile = profileUser || currentUser || {} as UserProfile;
+  const isViewingSelf = Boolean(currentUser && activeProfile.id === currentUser.id);
+  const canEdit = Boolean(currentUser && (isViewingSelf || currentUser.isAdmin));
 
   useEffect(() => {
     if (activeProfile) {
@@ -880,7 +880,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                             <ChevronRight className="w-3.5 h-3.5" />
                           </button>
 
-                          {isViewingSelf && onUnenrollProject && p.leaderId !== currentUser.id && (
+                          {isViewingSelf && onUnenrollProject && currentUser && p.leaderId !== currentUser.id && (
                             <button
                               type="button"
                               onClick={(e) => {

@@ -385,9 +385,21 @@ export const EventsManager: React.FC<EventsManagerProps> = ({
               return (
                 <div
                   key={evt.id}
-                  className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between space-y-4"
+                  className="group relative flex flex-col rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all overflow-hidden"
                 >
-                  <div className="space-y-3">
+                  {evt.thumbnail && (
+                    <div className="relative h-40 bg-slate-950 overflow-hidden shrink-0">
+                      <img
+                        src={evt.thumbnail}
+                        alt={evt.title}
+                        className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-300"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+                    </div>
+                  )}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className={`px-2.5 py-0.5 rounded text-[11px] font-bold border ${badge.bg}`}>
@@ -561,6 +573,7 @@ export const EventsManager: React.FC<EventsManagerProps> = ({
                       />
                     </div>
                   )}
+                  </div>
                 </div>
               );
             })}

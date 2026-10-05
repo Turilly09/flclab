@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Project, RoleId, ProjectPhase, DisciplineId, UserProfile } from '../types/flc';
-import { DISCIPLINES, ROLES, PHASES } from '../data/flcInitialData';
+import { DISCIPLINES, ROLES, PHASES, ASSET_IMAGES } from '../data/flcInitialData';
 import { X, Trash2, Save, Layers, CheckCircle2, AlertCircle, Crown, ShieldAlert } from 'lucide-react';
 
 interface EditProjectModalProps {
@@ -35,6 +35,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
   const [completedText, setCompletedText] = useState(project.deliverablesCompleted.join('\n'));
   const [pendingText, setPendingText] = useState(project.deliverablesPending.join('\n'));
   const [openRoles, setOpenRoles] = useState<RoleId[]>(project.openRoles);
+  const [thumbnail, setThumbnail] = useState(project.thumbnail || '');
   const [error, setError] = useState('');
 
   const toggleOpenRole = (roleId: RoleId) => {
@@ -83,6 +84,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
         .map((s) => s.trim())
         .filter((s) => s.length > 0),
       openRoles,
+      thumbnail,
       lastUpdate: 'Hoy',
     };
 
@@ -195,6 +197,34 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
               }}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
             />
+          </div>
+
+          {/* Thumbnail */}
+          <div>
+            <label className="block font-bold text-slate-200 mb-1">Imagen de Portada (URL o Ruta de Asset)</label>
+            <input
+              type="text"
+              value={thumbnail}
+              onChange={(e) => setThumbnail(e.target.value)}
+              placeholder="Ej: https://images.unsplash.com/... o chasis.jpg"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+            />
+            <div className="flex flex-wrap gap-2 mt-2">
+              {Object.entries(ASSET_IMAGES).map(([name, url]) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setThumbnail(url)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold shrink-0 border transition-all cursor-pointer ${
+                    thumbnail === url
+                      ? 'bg-amber-400 text-slate-950 border-amber-400'
+                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  Asset: {name === 'hero' ? 'General' : name === 'game' ? 'Videojuegos' : name === 'robotics' ? 'Robótica/3D' : 'Mesa'}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Discipline, Phase, Trimester */}

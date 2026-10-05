@@ -41,6 +41,7 @@ import { AdminUserPoolModal } from './components/AdminUserPoolModal';
 import { DiagnosticErrorBoundary } from './components/DiagnosticErrorBoundary';
 import { MethodologySection } from './components/MethodologySection';
 import { CommunitySection } from './components/CommunitySection';
+import { PublicUserDirectory } from './components/PublicUserDirectory';
 import { ProjectsManager } from './components/ProjectsManager';
 import { EventsManager } from './components/EventsManager';
 import { CollaborationsManager } from './components/CollaborationsManager';
@@ -453,22 +454,52 @@ export default function App() {
     );
 
     const unsubProjects = subscribeToProjects((remote) => {
-      if (remote.length > 0) setProjects(remote);
+      if (remote.length > 0) {
+        setProjects(remote);
+        localStorage.setItem('flc_v2_db_seeded', 'true');
+      } else if (localStorage.getItem('flc_v2_db_seeded') === 'true') {
+        setProjects([]);
+      }
     });
     const unsubEvents = subscribeToEvents((remote) => {
-      if (remote.length > 0) setEvents(remote);
+      if (remote.length > 0) {
+        setEvents(remote);
+        localStorage.setItem('flc_v2_db_seeded', 'true');
+      } else if (localStorage.getItem('flc_v2_db_seeded') === 'true') {
+        setEvents([]);
+      }
     });
     const unsubCollabs = subscribeToCollaborations((remote) => {
-      if (remote.length > 0) setCollaborations(remote);
+      if (remote.length > 0) {
+        setCollaborations(remote);
+        localStorage.setItem('flc_v2_db_seeded', 'true');
+      } else if (localStorage.getItem('flc_v2_db_seeded') === 'true') {
+        setCollaborations([]);
+      }
     });
     const unsubUsers = subscribeToUsers((remote) => {
-      if (remote.length > 0) setUsers(remote);
+      if (remote.length > 0) {
+        setUsers(remote);
+        localStorage.setItem('flc_v2_db_seeded', 'true');
+      } else if (localStorage.getItem('flc_v2_db_seeded') === 'true') {
+        setUsers([]);
+      }
     });
     const unsubBitacora = subscribeToBitacora((remote) => {
-      if (remote.length > 0) setBitacoraEntries(remote);
+      if (remote.length > 0) {
+        setBitacoraEntries(remote);
+        localStorage.setItem('flc_v2_db_seeded', 'true');
+      } else if (localStorage.getItem('flc_v2_db_seeded') === 'true') {
+        setBitacoraEntries([]);
+      }
     });
     const unsubCarousel = subscribeToCarouselSlides((remote) => {
-      if (remote.length > 0) setCarouselSlides(remote);
+      if (remote.length > 0) {
+        setCarouselSlides(remote);
+        localStorage.setItem('flc_v2_db_seeded', 'true');
+      } else if (localStorage.getItem('flc_v2_db_seeded') === 'true') {
+        setCarouselSlides([]);
+      }
     });
 
     return () => {
@@ -626,23 +657,6 @@ export default function App() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 4000);
   };
-
-  // Sync to local storage
-  useEffect(() => {
-    safeStorage.setItem('flc_lab_projects', JSON.stringify(projects));
-  }, [projects]);
-
-  useEffect(() => {
-    safeStorage.setItem('flc_lab_events', JSON.stringify(events));
-  }, [events]);
-
-  useEffect(() => {
-    safeStorage.setItem('flc_lab_collaborations', JSON.stringify(collaborations));
-  }, [collaborations]);
-
-  useEffect(() => {
-    safeStorage.setItem('flc_lab_users', JSON.stringify(users));
-  }, [users]);
 
   // Project count by phase for methodology section
   const projectCountByPhase = useMemo(() => {
@@ -837,9 +851,10 @@ export default function App() {
       setProjects(INITIAL_PROJECTS);
       setEvents(INITIAL_EVENTS);
       setCollaborations(INITIAL_COLLABORATIONS);
-      safeStorage.removeItem('flc_lab_projects');
-      safeStorage.removeItem('flc_lab_events');
-      safeStorage.removeItem('flc_lab_collaborations');
+      safeStorage.removeItem('flc_v2_projects');
+      safeStorage.removeItem('flc_v2_events');
+      safeStorage.removeItem('flc_v2_collaborations');
+      localStorage.removeItem('flc_v2_db_seeded');
       showToast('Datos del laboratorio restaurados al estado inicial.');
     }
   };
@@ -1134,6 +1149,10 @@ export default function App() {
                   setIsCollabModalOpen(true);
                 });
               }}
+            />
+            <PublicUserDirectory
+              users={users}
+              onOpenUserProfile={handleOpenProfileForUser}
             />
             <CollaborationsManager
               collaborations={collaborations}
